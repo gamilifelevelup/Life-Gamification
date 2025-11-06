@@ -1,0 +1,60 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #000;
+  color: #fff;
+  margin: 0;
+  overflow-x: hidden;
+}
+
+.screen {
+  display: none;
+  text-align: center;
+  padding: 20px;
+}
+
+.screen.active {
+  display: block;
+}
+
+/* Star Wars crawl style */
+.scroll-text {
+  position: relative;
+  top: 100vh;
+  animation: crawl 20s linear forwards;
+  max-width: 600px;
+  margin: auto;
+  font-size: 1.2em;
+}
+
+@keyframes crawl {
+  0% { top: 100vh; opacity: 1; }
+  100% { top: -100vh; opacity: 0; }
+}
+
+button {
+  background: #222;
+  color: #fff;
+  border: 1px solid #555;
+  padding: 10px 20px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+button:hover {
+  background: #444;
+}
+
+.exp-bar {
+  background: #333;
+  height: 20px;
+  width: 200px;
+  margin: 10px auto;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#exp-progress {
+  background: #4caf50;
+  height: 100%;
+  width: 30%;
+}
