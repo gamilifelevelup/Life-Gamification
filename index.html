@@ -37,7 +37,7 @@
   <section id="info-screen" class="screen">
     <h2>Tell us about yourself</h2>
     <label>Name: <input type="text" id="player-name"></label><br>
-    <label>Age: <input type="number" id="player-age"></label><br>
+    <label>Age: <input type="number" id="player-age" min ="0"></label><br>
     <label>Sex:
       <select id="player-sex">
         <option value="male">Male</option>
@@ -87,26 +87,26 @@
 
   <script src="script.js"></script>
   <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-          // Select the screens
-          const welcomeScreen = document.getElementById('welcome-screen');
-          const startScreen = document.getElementById('start-screen');
-          // Select the scrolling text element
-          const scrollText = document.querySelector('.scroll-text');
-    
-          if (scrollText && welcomeScreen && startScreen) {
-            // Listen for the 'animationend' event, which fires when a CSS animation completes
-            scrollText.addEventListener('animationend', () => {
-              // Check if the welcome screen is still active (in case the user didn't skip)
-              if (welcomeScreen.classList.contains('active')) {
-                // Hide the welcome screen
-                welcomeScreen.classList.remove('active');
-                // Show the start screen
-                startScreen.classList.add('active');
-              }
-            });
-          }
-        });
-      </script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      // Select the screens
+      const welcomeScreen = document.getElementById('welcome-screen');
+      const startScreen = document.getElementById('start-screen');
+      // Select the scrolling text element
+      const scrollText = document.querySelector('.scroll-text');
+
+      if (scrollText && welcomeScreen && startScreen) {
+        // Listen for the 'animationend' event, which fires when a CSS animation completes
+        scrollText.addEventListener('animationend', () => {
+          // Check if the welcome screen is still active (in case the user didn't skip)
+          if (welcomeScreen.classList.contains('active')) {
+            // Hide the welcome screen
+            welcomeScreen.classList.remove('active');
+            // Show the start screen
+            startScreen.classList.add('active');
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>
