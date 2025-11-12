@@ -1,18 +1,14 @@
 // Supabase Configuration Template
-// Copy this file to config.js and fill in your actual credentials
-// Get them from: Supabase Dashboard > Settings > API
-// 
-// IMPORTANT: Never commit config.js to version control!
 
 const SUPABASE_CONFIG = {
-  SUPABASE_URL: 'YOUR_SUPABASE_URL_HERE', // e.g., 'https://xxxxxxxxxxxxx.supabase.co'
-  SUPABASE_ANON_KEY: 'YOUR_SUPABASE_ANON_KEY_HERE' // Your anon/public key
+  SUPABASE_URL: 'SUPABASE_URL', 
+  SUPABASE_ANON_KEY: 'SUPABASE_ANON_KEY' 
 };
 
 // Initialize Supabase client
 let supabaseClient = null;
 
-if (SUPABASE_CONFIG.SUPABASE_URL && SUPABASE_CONFIG.SUPABASE_URL !== 'YOUR_SUPABASE_URL_HERE') {
+if (SUPABASE_CONFIG.SUPABASE_URL && SUPABASE_CONFIG.SUPABASE_URL !== 'SUPABASE_URL') {
   // Load Supabase client library dynamically
   const script = document.createElement('script');
   script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js';

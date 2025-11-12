@@ -1,15 +1,6 @@
 # Supabase Configuration (contains sensitive API keys)
+# NEVER commit config.js - it contains your real API credentials
 config.js
-
-# Documentation files
-*.md
-README*
-SECURITY.md
-SETUP_DATABASE.md
-
-# Database files
-database/
-*.sql
 
 # Environment variables
 .env
@@ -36,8 +27,11 @@ npm-debug.log*
 *.tmp
 *.temp
 
-# Only track these main website files:
-# - index.html
-# - style.css
-# - script.js
-# - config.example.js
+# Files TO commit (these are safe and helpful):
+# ✅ index.html
+# ✅ style.css
+# ✅ script.js
+# ✅ config.example.js (template without real keys)
+# ✅ *.md files (documentation)
+# ✅ database/*.sql files (schema and seed data - no secrets)
+# ✅ .gitignore
