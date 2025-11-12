@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Hero App Skeleton</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -18,62 +21,86 @@
 
   <!-- Start Screen -->
   <section id="start-screen" class="screen">
-    <h1>Welcome to the Hero Journey</h1>
-    <button id="start-btn">Start Adventure</button>
+    <div class="panel">
+      <h1>Welcome to the Hero Journey</h1>
+      <p class="panel-subtitle">Choose your path, forge your destiny, and watch your daily quests turn you into a legend.</p>
+      <button id="start-btn">Start Adventure</button>
+    </div>
   </section>
 
   <!-- Info Screen -->
   <section id="info-screen" class="screen">
-    <h2>Tell us about yourself</h2>
-    <label>Name: <input type="text" id="player-name"></label><br>
-    <label>Age: <input type="number" id="player-age"></label><br>
-    <label>Sex:
-      <select id="player-sex">
-        <option value="male">Male</option>
-        <option value="female">Female</option>
-        <option value="other">Other</option>
-      </select>
-    </label><br>
-    <button id="to-questions-btn">Next</button>
+    <div class="panel">
+      <h2>Tell us about yourself</h2>
+      <p class="panel-subtitle">We shape a persona that matches your ambitions.</p>
+      <div class="form-grid">
+        <label for="player-name">
+          <span>Name</span>
+          <input type="text" id="player-name" placeholder="Your hero name">
+        </label>
+        <label for="player-age">
+          <span>Age</span>
+          <input type="number" id="player-age" min="1" placeholder="Age in years">
+        </label>
+        <label for="player-sex">
+          <span>Identity</span>
+          <select id="player-sex">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+            <option value="other">Other</option>
+          </select>
+        </label>
+      </div>
+      <button id="to-questions-btn">Next</button>
+    </div>
   </section>
 
   <!-- Question Screen -->
   <section id="question-screen" class="screen">
-    <h2>Answer these questions</h2>
-    <div id="questions-container"></div>
-    <button id="submit-answers-btn">Submit</button>
+    <div class="panel panel--wide">
+      <h2>Answer these questions</h2>
+      <p class="panel-subtitle">Trust your instincts. Slide to choose how strongly each statement resonates.</p>
+      <div id="questions-container" class="questions-grid"></div>
+      <button id="submit-answers-btn">Submit</button>
+    </div>
   </section>
 
   <!-- Result Screen -->
   <section id="result-screen" class="screen">
-    <h2 id="hero-type"></h2>
-    <p id="result-message"></p>
-    <button id="accept-hero-btn">Accept</button>
+    <div class="panel">
+      <h2 id="hero-type"></h2>
+      <p id="result-message"></p>
+      <button id="accept-hero-btn">Accept Destiny</button>
+    </div>
   </section>
 
   <!-- Dashboard Screen -->
   <section id="dashboard-screen" class="screen">
-    <h2>Welcome to the new world, <span id="player-display-name"></span>!</h2>
-    <div class="dashboard">
-      <div class="character-dashboard">
-        <h3>Character Dashboard</h3>
-        <p>Level: <span id="char-level">1</span></p>
-        <div class="exp-bar"><div id="exp-progress"></div></div>
-        <ul>
-          <li>V: <span id="attr-v">10</span></li>
-          <li>R: <span id="attr-r">10</span></li>
-          <li>C: <span id="attr-c">10</span></li>
-          <li>M: <span id="attr-m">10</span></li>
-        </ul>
-      </div>
+    <div class="panel panel--wide">
+      <h2>Welcome to the new world, <span id="player-display-name"></span>!</h2>
+      <p class="panel-subtitle">Track your growth and plan the next epic quest.</p>
+      <div class="dashboard">
+        <div class="character-dashboard card">
+          <h3>Character Dashboard</h3>
+          <p class="stat-line">Level: <span id="char-level">1</span></p>
+          <div class="exp-bar"><div id="exp-progress"></div></div>
+          <ul class="attribute-list">
+            <li>V: <span id="attr-v">10</span></li>
+            <li>R: <span id="attr-r">10</span></li>
+            <li>C: <span id="attr-c">10</span></li>
+            <li>M: <span id="attr-m">10</span></li>
+          </ul>
+        </div>
 
-      <div class="task-dashboard">
-        <h3>Task Dashboard</h3>
-        <p>(Coming soon...)</p>
+        <div class="task-dashboard card">
+          <h3>Task Dashboard</h3>
+          <p class="placeholder">Quest tracking is coming soon...</p>
+        </div>
       </div>
     </div>
   </section>
 
+  <script src="config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

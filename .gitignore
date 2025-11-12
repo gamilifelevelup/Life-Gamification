@@ -1,0 +1,43 @@
+# Supabase Configuration (contains sensitive API keys)
+config.js
+
+# Documentation files
+*.md
+README*
+SECURITY.md
+SETUP_DATABASE.md
+
+# Database files
+database/
+*.sql
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
+
+# Only track these main website files:
+# - index.html
+# - style.css
+# - script.js
+# - config.example.js
