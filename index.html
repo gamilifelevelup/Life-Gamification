@@ -12,10 +12,21 @@
 <body>
   <!-- Welcome Screen -->
   <section id="welcome-screen" class="screen active">
-    <div class="scroll-text">
-      <p>In a world torn by chaos and fate, heroes rise to bring balance...</p>
-      <p>You are one of them. Your destiny awaits.</p>
-    </div>
+    <div class="scroll-text p-4 text-center">
+      <p class="text-xl font-display text-gray-700">In a world torn by chaos and fate, heroes rise to bring balance...</p>
+      <p class="text-xl font-display text-gray-700">You are one of them. Your destiny awaits.</p>
+      
+      <p class="mt-6 text-2xl font-serif italic text-red-700">
+          --- The Edict of the Fallen King ---
+      </p>
+  
+      <p class="mt-4 text-lg text-gray-800">You were the Sovereign of your inner kingdom. The great pillars of your reign—<span class="font-bold text-indigo-700">Vitality, Resilience, Connection, and Mastery</span>—were corrupted by the <span class="font-bold text-red-900">Shadow Blight</span>.</p>
+      
+      <p class="mt-2 text-lg text-gray-800">Your Crown awaits, but your people (your habits) are in disarray. Your quest is not to gain new power, but to restore the four tarnished relics of your forgotten self.</p>
+  
+      <p class="mt-2 text-lg text-gray-800">Only by successfully completing the <span class="font-bold text-yellow-800">Scribe's Trial</span> can we determine your <span class="font-bold">Ascension Class</span> and reveal the true extent of the blight.</p>
+      
+  </div>
     <button id="skip-btn">Skip</button>
   </section>
 
@@ -102,5 +113,27 @@
 
   <script src="config.js"></script>
   <script src="script.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      // Select the screens
+      const welcomeScreen = document.getElementById('welcome-screen');
+      const startScreen = document.getElementById('start-screen');
+      // Select the scrolling text element
+      const scrollText = document.querySelector('.scroll-text');
+
+      if (scrollText && welcomeScreen && startScreen) {
+        // Listen for the 'animationend' event, which fires when a CSS animation completes
+        scrollText.addEventListener('animationend', () => {
+          // Check if the welcome screen is still active (in case the user didn't skip)
+          if (welcomeScreen.classList.contains('active')) {
+            // Hide the welcome screen
+            welcomeScreen.classList.remove('active');
+            // Show the start screen
+            startScreen.classList.add('active');
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>
