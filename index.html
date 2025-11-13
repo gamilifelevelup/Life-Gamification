@@ -93,13 +93,16 @@
       <div class="dashboard">
         <div class="character-dashboard card">
           <h3>Character Dashboard</h3>
-          <p class="stat-line">Level: <span id="char-level">1</span></p>
-          <div class="exp-bar"><div id="exp-progress"></div></div>
+          <p class="stat-line">Base Level: <span id="char-level">1</span></p>
+          <div class="exp-bar-container">
+            <div class="exp-bar"><div id="exp-progress"></div></div>
+            <p class="exp-text"><span id="current-exp">0</span> / <span id="next-level-exp">1000</span> XP</p>
+          </div>
           <ul class="attribute-list">
-            <li>V: <span id="attr-v">10</span></li>
-            <li>R: <span id="attr-r">10</span></li>
-            <li>C: <span id="attr-c">10</span></li>
-            <li>M: <span id="attr-m">10</span></li>
+            <li>Vitality (V): <span id="attr-v">10</span></li>
+            <li>Resilience (R): <span id="attr-r">10</span></li>
+            <li>Connection (C): <span id="attr-c">10</span></li>
+            <li>Mastery (M): <span id="attr-m">10</span></li>
           </ul>
         </div>
 

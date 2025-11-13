@@ -287,6 +287,10 @@ button:focus-visible {
   font-weight: 600;
 }
 
+.exp-bar-container {
+  margin-bottom: 1.2rem;
+}
+
 .exp-bar {
   background: rgba(19, 29, 58, 0.8);
   height: 18px;
@@ -295,6 +299,14 @@ button:focus-visible {
   border: 1px solid rgba(124, 92, 255, 0.3);
   overflow: hidden;
   position: relative;
+  margin-bottom: 0.5rem;
+}
+
+.exp-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin: 0;
 }
 
 #exp-progress {
