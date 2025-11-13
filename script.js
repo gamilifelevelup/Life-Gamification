@@ -280,6 +280,89 @@ async function loadTasks(primaryTrait = null) {
   }
 }
 
+// Complete a task and add XP
+async function completeTask(taskId, xpReward) {
+  if (!currentProfileId) {
+    console.warn('No profile ID available');
+    return { success: false };
+  }
+
+  const client = await waitForSupabase();
+  if (!client) {
+    console.warn('Supabase not available');
+    return { success: false };
+  }
+
+  try {
+    // Load current profile to get experience
+    const profile = await loadProfile(currentProfileId);
+    if (!profile) {
+      console.error('Could not load profile');
+      return { success: false };
+    }
+
+    // Calculate new experience
+    const currentExp = profile.experience || 0;
+    const newExp = currentExp + (xpReward || 10);
+    const currentLevel = profile.level || 1;
+    const nextLevelExp = calculateNextLevelExp(currentLevel);
+
+    // Check if level up
+    let newLevel = currentLevel;
+    let finalExp = newExp;
+    let leveledUp = false;
+    
+    if (newExp >= nextLevelExp) {
+      // Level up!
+      leveledUp = true;
+      newLevel = currentLevel + 1;
+      finalExp = newExp - nextLevelExp; // Carry over excess XP
+      
+      // Recalculate next level exp for new level
+      const newNextLevelExp = calculateNextLevelExp(newLevel);
+      // If still over, keep leveling up (shouldn't happen with normal XP gains, but just in case)
+      while (finalExp >= newNextLevelExp) {
+        newLevel += 1;
+        finalExp -= calculateNextLevelExp(newLevel - 1);
+      }
+    }
+
+    // Save task log
+    const { error: logError } = await client
+      .from('task_logs')
+      .insert({
+        profile_id: currentProfileId,
+        task_id: taskId,
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      });
+
+    if (logError) throw logError;
+
+    // Update profile with new experience and level
+    const { error: updateError } = await client
+      .from('profiles')
+      .update({
+        experience: finalExp,
+        level: newLevel
+      })
+      .eq('id', currentProfileId);
+
+    if (updateError) throw updateError;
+
+    // Store level up info for UI notification
+    if (leveledUp) {
+      window.lastLevelUp = { from: currentLevel, to: newLevel };
+    }
+    
+    console.log(`Task completed! Gained ${xpReward} XP. ${leveledUp ? `Level up to ${newLevel}!` : ''}`);
+    return { success: true, leveledUp, newLevel, xpGained: xpReward };
+  } catch (error) {
+    console.error('Error completing task:', error);
+    return { success: false };
+  }
+}
+
 // Display tasks in dashboard, sorted by user's primary needs
 async function displayTasks(primaryTrait = null) {
   const taskContainer = document.querySelector('.task-dashboard');
@@ -294,18 +377,52 @@ async function displayTasks(primaryTrait = null) {
     return;
   }
 
-  const tasksHTML = tasks.slice(0, 8).map(task => {
+  // Filter out already completed tasks
+  const client = await waitForSupabase();
+  let completedTaskIds = [];
+  if (client && currentProfileId) {
+    try {
+      const { data } = await client
+        .from('task_logs')
+        .select('task_id')
+        .eq('profile_id', currentProfileId)
+        .eq('status', 'completed');
+      
+      if (data) {
+        completedTaskIds = data.map(log => log.task_id);
+      }
+    } catch (error) {
+      console.error('Error loading completed tasks:', error);
+    }
+  }
+
+  // Filter out completed tasks
+  const availableTasks = tasks.filter(task => !completedTaskIds.includes(task.id));
+
+  if (availableTasks.length === 0) {
+    taskContainer.innerHTML = `
+      <h3>Task Dashboard</h3>
+      <p class="placeholder">All tasks completed! Great job! 🎉</p>
+    `;
+    return;
+  }
+
+  const tasksHTML = availableTasks.slice(0, 8).map((task, index) => {
     const isRecommended = primaryTrait && task.trait_focus && task.trait_focus.includes(primaryTrait);
+    const taskId = task.id;
+    const xpReward = task.experience_reward || 10;
+    
     return `
-    <div style="background: rgba(7, 15, 35, 0.72); padding: 1rem; border-radius: 12px; margin-bottom: 0.75rem; border: 1px solid ${isRecommended ? 'rgba(54, 214, 255, 0.4)' : 'rgba(118, 138, 255, 0.22)'};">
+    <div class="task-item" data-task-id="${taskId}" style="background: rgba(7, 15, 35, 0.72); padding: 1rem; border-radius: 12px; margin-bottom: 0.75rem; border: 1px solid ${isRecommended ? 'rgba(54, 214, 255, 0.4)' : 'rgba(118, 138, 255, 0.22)'};">
       ${isRecommended ? '<span style="font-size: 0.75rem; color: var(--accent-strong); text-transform: uppercase; letter-spacing: 0.05em;">⭐ Recommended</span>' : ''}
       <h4 style="margin: ${isRecommended ? '0.25rem' : '0'} 0 0.5rem 0; font-size: 1rem;">${task.title}</h4>
       <p style="margin: 0; color: var(--text-muted); font-size: 0.85rem;">${task.description || ''}</p>
-      <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted);">
-        <span>XP: ${task.experience_reward || 10}</span>
+      <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+        <span>XP: ${xpReward}</span>
         <span>•</span>
         <span>Unlocks at Level: ${task.unlock_level || 1}</span>
       </div>
+      <button class="complete-task-btn" data-task-id="${taskId}" data-xp="${xpReward}" style="width: 100%; padding: 0.6rem; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%); border: none; border-radius: 8px; color: var(--text); font-weight: 600; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 16px rgba(70, 108, 255, 0.3)'; this.style.filter='brightness(1.05)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'; this.style.filter='brightness(1)'">Complete Task</button>
     </div>
   `;
   }).join('');
@@ -313,11 +430,63 @@ async function displayTasks(primaryTrait = null) {
   taskContainer.innerHTML = `
     <h3>Task Dashboard</h3>
     <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem;">Tasks sorted by your primary needs</p>
-    <div style="max-height: 400px; overflow-y: auto;">
+    <div id="tasks-list" style="max-height: 400px; overflow-y: auto;">
       ${tasksHTML}
-      ${tasks.length > 8 ? `<p style="text-align: center; color: var(--text-muted); margin-top: 1rem;">+ ${tasks.length - 8} more tasks</p>` : ''}
+      ${availableTasks.length > 8 ? `<p style="text-align: center; color: var(--text-muted); margin-top: 1rem;">+ ${availableTasks.length - 8} more tasks</p>` : ''}
     </div>
   `;
+
+  // Add event listeners to complete buttons
+  const completeButtons = taskContainer.querySelectorAll('.complete-task-btn');
+  completeButtons.forEach(button => {
+    button.addEventListener('click', async (e) => {
+      const taskId = button.getAttribute('data-task-id');
+      const xpReward = parseInt(button.getAttribute('data-xp')) || 10;
+      
+      // Disable button to prevent double-clicks
+      button.disabled = true;
+      button.textContent = 'Completing...';
+      button.style.opacity = '0.6';
+      
+      // Complete the task
+      const result = await completeTask(taskId, xpReward);
+      
+      if (result && result.success) {
+        // Show level up notification if applicable
+        if (result.leveledUp) {
+          alert(`🎉 Level Up! You reached level ${result.newLevel}! 🎉`);
+        }
+        // Remove the task from display with animation
+        const taskItem = button.closest('.task-item');
+        if (taskItem) {
+          taskItem.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          taskItem.style.opacity = '0';
+          taskItem.style.transform = 'translateX(-20px)';
+          
+          setTimeout(async () => {
+            // Reload profile to update XP/level
+            const profile = await loadProfile(currentProfileId);
+            if (profile) {
+              // Update dashboard and get primary trait
+              const primaryTrait = updateDashboard(profile);
+              
+              // Reload and display new tasks
+              await displayTasks(primaryTrait);
+            } else {
+              // Fallback: just reload tasks
+              await displayTasks(null);
+            }
+          }, 300);
+        }
+      } else {
+        // Re-enable button on error
+        button.disabled = false;
+        button.textContent = 'Complete Task';
+        button.style.opacity = '1';
+        alert('Failed to complete task. Please try again.');
+      }
+    });
+  });
 }
 
 // Update dashboard with profile data
