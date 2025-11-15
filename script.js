@@ -151,7 +151,7 @@ function calculateNextLevelExp(baseLevel) {
 }
 
 // Save profile to database with calculated level and experience
-async function saveProfile(name, age, sex, heroType, attributes) {
+async function saveProfile(name, age, pronouns, heroType, attributes) {
   const client = await waitForSupabase();
   if (!client) {
     console.warn('Supabase not available, profile not saved');
@@ -168,7 +168,7 @@ async function saveProfile(name, age, sex, heroType, attributes) {
       .insert({
         name: name,
         age: age || null,
-        sex: sex || null,
+        sex: pronouns || null, // Storing pronouns in sex field
         hero_type: heroType,
         level: baseLevel,
         experience: 0, // Start with 0 experience
@@ -549,18 +549,270 @@ document.getElementById('skip-btn').addEventListener('click', () => {
   showScreen('start-screen');
 });
 
-// Start -> Info
+// Dialogue responses for each scene
+const dialogueResponses = {
+  scene1: {
+    who: "I am a guide, a keeper of the old ways. I have watched over this realm for many cycles, waiting for one such as you to rise again.",
+    where: "You are in the realm of your inner kingdom—a place that reflects your very essence. The Shadow Blight has left its mark here, but hope remains.",
+    help: "I will guide you to the four Great Island, where you must restore the four relics: Vitality, Resilience, Connection, and Mastery. Together, we will reclaim what was lost."
+  },
+  scene2: {
+    islands: "The four Great Island are sacred places, each representing one of the pillars of your reign. To restore your throne, you must journey to each and prove yourself worthy.",
+    throne: "Your throne awaits, but first you must restore the four relics. Each island will test you, and through these trials, you will regain the power you once held.",
+    blight: "The Shadow Blight is a corruption that feeds on neglect and weakness. It tarnished your four great pillars, but they can be cleansed through dedication and growth."
+  },
+  scene3: {
+    trial: "The Scribe's Trial is a test of your true nature. Through questions, we will determine your Ascension Class—the path that best suits your spirit.",
+    relics: "The four relics are Vitality—your physical strength, Resilience—your mental fortitude, Connection—your bonds with others, and Mastery—your pursuit of excellence.",
+    ready: "You are ready, fallen one. The journey ahead will be challenging, but I see the spark of greatness within you. Trust in yourself, and we will succeed together."
+  }
+};
+
+// Function to handle dialogue interactions
+function setupDialogueSystem(sceneNum) {
+  // Reset dialogue state
+  const dialogueOptionsContainer = document.getElementById(`scene${sceneNum}-dialogue-options`);
+  const npcResponse = document.getElementById(`scene${sceneNum}-npc-response`);
+  const mainQuestion = document.getElementById(`scene${sceneNum}-main-question`);
+  const inputContainer = document.getElementById(`scene${sceneNum}-input-container`);
+  const continueBtn = document.getElementById(`story-scene-${sceneNum}-btn`);
+  
+  // Reset visibility
+  dialogueOptionsContainer.style.display = 'flex';
+  npcResponse.style.display = 'none';
+  mainQuestion.style.display = 'none';
+  inputContainer.style.display = 'none';
+  continueBtn.style.display = 'none';
+  
+  // Remove any existing skip button
+  const existingSkipBtn = dialogueOptionsContainer.querySelector('.skip-dialogue-btn');
+  if (existingSkipBtn) {
+    existingSkipBtn.remove();
+  }
+  
+  // Reset all dialogue buttons
+  const dialogueOptions = dialogueOptionsContainer.querySelectorAll('.dialogue-btn:not(.skip-dialogue-btn)');
+  dialogueOptions.forEach(btn => {
+    btn.classList.remove('clicked');
+    btn.style.pointerEvents = 'auto';
+    btn.style.opacity = '1';
+  });
+  
+  const sceneResponses = dialogueResponses[`scene${sceneNum}`];
+  let clickedCount = 0;
+  const totalOptions = dialogueOptions.length;
+  let skipBtnAdded = false;
+  
+  dialogueOptions.forEach(btn => {
+    btn.addEventListener('click', function handleClick() {
+      const responseType = this.getAttribute('data-response');
+      const response = sceneResponses[responseType];
+      
+      if (response && !this.classList.contains('clicked')) {
+        // Mark button as clicked
+        this.classList.add('clicked');
+        clickedCount++;
+        
+        // Show NPC response
+        npcResponse.innerHTML = `<em>"${response}"</em>`;
+        npcResponse.style.display = 'block';
+        
+        // Add skip button after first click
+        if (!skipBtnAdded && clickedCount > 0) {
+          skipBtnAdded = true;
+          const skipBtn = document.createElement('button');
+          skipBtn.className = 'dialogue-btn skip-dialogue-btn';
+          skipBtn.textContent = '"I\'m ready to answer your question"';
+          skipBtn.style.marginTop = '0.5rem';
+          skipBtn.addEventListener('click', () => {
+            mainQuestion.style.display = 'block';
+            inputContainer.style.display = 'block';
+            continueBtn.style.display = 'block';
+            dialogueOptionsContainer.style.display = 'none';
+            npcResponse.style.display = 'none';
+            const input = inputContainer.querySelector('input, select');
+            if (input) {
+              setTimeout(() => input.focus(), 100);
+            }
+          });
+          dialogueOptionsContainer.appendChild(skipBtn);
+        }
+        
+        // After all dialogues are clicked, show main question
+        if (clickedCount >= totalOptions) {
+          setTimeout(() => {
+            mainQuestion.style.display = 'block';
+            inputContainer.style.display = 'block';
+            continueBtn.style.display = 'block';
+            dialogueOptionsContainer.style.display = 'none';
+            // Focus on input
+            const input = inputContainer.querySelector('input, select');
+            if (input) {
+              setTimeout(() => input.focus(), 100);
+            }
+          }, 1000);
+        }
+      }
+    });
+  });
+}
+
+// Start -> Story Scene 1
 document.getElementById('start-btn').addEventListener('click', () => {
-  showScreen('info-screen');
+  showScreen('story-scene-1');
+  setupDialogueSystem(1);
 });
 
-// Info -> Questions
-document.getElementById('to-questions-btn').addEventListener('click', async () => {
-  const name = document.getElementById('player-name').value.trim();
+// Story Scene 1 -> Scene 2 (Name)
+function proceedFromScene1() {
+  const name = document.getElementById('story-name').value.trim();
   if (!name) {
     alert("Please enter your name.");
+    document.getElementById('story-name').focus();
     return;
   }
+  
+  // Store name and display it in next scene
+  document.getElementById('player-name').value = name;
+  document.getElementById('story-name-display').textContent = name;
+  document.getElementById('story-name-display-2').textContent = name;
+  document.getElementById('story-name-display-3').textContent = name;
+  
+  showScreen('story-scene-2');
+  setupDialogueSystem(2);
+}
+
+document.getElementById('story-scene-1-btn').addEventListener('click', proceedFromScene1);
+document.getElementById('story-name').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    proceedFromScene1();
+  }
+});
+
+// Story Scene 2 -> Scene 3 (Age)
+function proceedFromScene2() {
+  const age = document.getElementById('story-age').value;
+  if (!age || parseInt(age) < 1) {
+    alert("Please enter a valid age.");
+    document.getElementById('story-age').focus();
+    return;
+  }
+  
+  // Store age and display it in next scene
+  document.getElementById('player-age').value = age;
+  document.getElementById('story-age-display').textContent = age;
+  document.getElementById('story-age-display-2').textContent = age;
+  
+  showScreen('story-scene-3');
+  setupDialogueSystem(3);
+}
+
+document.getElementById('story-scene-2-btn').addEventListener('click', proceedFromScene2);
+document.getElementById('story-age').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    proceedFromScene2();
+  }
+});
+
+// Pronoun utility functions
+function getPronounForms(pronouns) {
+  // Default forms for common pronouns
+  const pronounMap = {
+    'he/him': { subject: 'he', object: 'him', possessive: 'his', reflexive: 'himself' },
+    'she/her': { subject: 'she', object: 'her', possessive: 'her', reflexive: 'herself' },
+    'they/them': { subject: 'they', object: 'them', possessive: 'their', reflexive: 'themself' }
+  };
+  
+  if (pronounMap[pronouns]) {
+    return pronounMap[pronouns];
+  }
+  
+  // For custom pronouns, try to parse (e.g., "xe/xem" -> subject: xe, object: xem)
+  const parts = pronouns.split('/');
+  if (parts.length >= 2) {
+    return {
+      subject: parts[0].trim(),
+      object: parts[1].trim(),
+      possessive: parts[2] ? parts[2].trim() : parts[1].trim() + "'s",
+      reflexive: parts[0].trim() + 'self'
+    };
+  }
+  
+  // Fallback
+  return { subject: 'they', object: 'them', possessive: 'their', reflexive: 'themself' };
+}
+
+// Story Scene 3 -> Scene 4 (Pronouns)
+function proceedFromScene3() {
+  const pronouns = document.getElementById('story-pronouns').value;
+  if (!pronouns) {
+    alert("Please choose your pronouns.");
+    document.getElementById('story-pronouns').focus();
+    return;
+  }
+  
+  let finalPronouns = pronouns;
+  if (pronouns === 'custom') {
+    const customPronouns = document.getElementById('story-pronouns-custom').value.trim();
+    if (!customPronouns) {
+      alert("Please enter your custom pronouns.");
+      document.getElementById('story-pronouns-custom').focus();
+      return;
+    }
+    finalPronouns = customPronouns;
+  }
+  
+  // Store pronouns
+  window.playerPronouns = finalPronouns;
+  window.pronounForms = getPronounForms(finalPronouns);
+  
+  // Store in hidden field for compatibility (using sex field for now, but it's actually pronouns)
+  document.getElementById('player-sex').value = finalPronouns;
+  
+  // Update pronoun displays in scene 4
+  updatePronounDisplays();
+  
+  showScreen('story-scene-4');
+}
+
+// Function to update pronoun displays in dialogue
+function updatePronounDisplays() {
+  if (window.pronounForms) {
+    const forms = window.pronounForms;
+    const pronounSubj = document.getElementById('pronoun-subject');
+    const pronounObj = document.getElementById('pronoun-object');
+    const pronounPoss = document.getElementById('pronoun-possessive');
+    const nameDisplay4 = document.getElementById('story-name-display-4');
+    
+    if (pronounSubj) pronounSubj.textContent = forms.subject;
+    if (pronounObj) pronounObj.textContent = forms.object;
+    if (pronounPoss) pronounPoss.textContent = forms.possessive;
+    if (nameDisplay4) nameDisplay4.textContent = document.getElementById('player-name').value;
+  }
+}
+
+document.getElementById('story-scene-3-btn').addEventListener('click', proceedFromScene3);
+
+// Show/hide custom pronoun input
+document.getElementById('story-pronouns').addEventListener('change', (e) => {
+  const customInput = document.getElementById('story-pronouns-custom');
+  if (e.target.value === 'custom') {
+    customInput.style.display = 'block';
+    customInput.focus();
+  } else {
+    customInput.style.display = 'none';
+    customInput.value = '';
+  }
+});
+
+document.getElementById('story-pronouns-custom').addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    proceedFromScene3();
+  }
+});
+
+// Story Scene 4 -> Questions
+document.getElementById('story-scene-4-btn').addEventListener('click', async () => {
   await generateQuestions();
   showScreen('question-screen');
 });
@@ -599,9 +851,9 @@ document.getElementById('submit-answers-btn').addEventListener('click', async ()
   // Save to database
   const name = document.getElementById('player-name').value.trim();
   const age = parseInt(document.getElementById('player-age').value) || null;
-  const sex = document.getElementById('player-sex').value;
+  const pronouns = window.playerPronouns || document.getElementById('player-sex').value;
 
-  await saveProfile(name, age, sex, heroType, attributes);
+  await saveProfile(name, age, pronouns, heroType, attributes);
   await saveQuestionAnswers(answers);
 
   // Display result

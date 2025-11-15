@@ -39,8 +39,173 @@
     </div>
   </section>
 
-  <!-- Info Screen -->
-  <section id="info-screen" class="screen">
+  <!-- Story Scene 1: Name -->
+  <section id="story-scene-1" class="screen">
+    <div class="panel panel--wide">
+      <div class="story-content">
+        <h2 class="story-title">The Edict of the Fallen King</h2>
+        
+        <div class="story-text">
+          <p class="story-paragraph">
+            You were once a great hero, a Sovereign who ruled with wisdom and strength. But the <span class="font-bold text-red-900">Shadow Blight</span> 
+            corrupted the four great pillars of your reign—<span class="font-bold text-indigo-700">Vitality, Resilience, Connection, and Mastery</span>—and you fell from grace.
+          </p>
+          
+          <p class="story-paragraph">
+            Now, you seek to reclaim your throne. A guide has found you, offering to help you on your journey to the four Great Island, 
+            where you must restore what was lost.
+          </p>
+          
+          <p class="story-paragraph npc-dialogue" id="scene1-initial-dialogue">
+            <em>"Greetings, fallen one. I am here to guide you on your path to redemption."</em>
+          </p>
+          
+          <div id="scene1-dialogue-options" class="dialogue-options">
+            <button class="dialogue-btn" data-response="who">"Who are you?"</button>
+            <button class="dialogue-btn" data-response="where">"Where am I?"</button>
+            <button class="dialogue-btn" data-response="help">"How can you help me?"</button>
+          </div>
+          
+          <div id="scene1-npc-response" class="npc-response" style="display: none;"></div>
+          
+          <p class="story-paragraph npc-dialogue" id="scene1-main-question" style="display: none;">
+            <em>"But first, tell me... what should I call you? What name do you bear?"</em>
+          </p>
+          
+          <div class="story-input-container" id="scene1-input-container" style="display: none;">
+            <input type="text" id="story-name" class="story-input-large" placeholder="Enter your name">
+          </div>
+        </div>
+        
+        <button id="story-scene-1-btn" class="story-continue-btn" style="display: none;">Continue</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Story Scene 2: Age -->
+  <section id="story-scene-2" class="screen">
+    <div class="panel panel--wide">
+      <div class="story-content">
+        <h2 class="story-title">The Edict of the Fallen King</h2>
+        
+        <div class="story-text">
+          <p class="story-paragraph">
+            You and your guide begin the journey toward the four Great Island. The path is long, and as you walk together, 
+            the guide studies you carefully.
+          </p>
+          
+          <p class="story-paragraph npc-dialogue" id="scene2-initial-dialogue">
+            <em>"<span id="story-name-display" class="story-highlight"></span>, I see the weight of many seasons upon you. 
+            The wisdom of age can be both a burden and a strength."</em>
+          </p>
+          
+          <div id="scene2-dialogue-options" class="dialogue-options">
+            <button class="dialogue-btn" data-response="islands">"Tell me about the four Great Island"</button>
+            <button class="dialogue-btn" data-response="throne">"How do I reclaim my throne?"</button>
+            <button class="dialogue-btn" data-response="blight">"What is the Shadow Blight?"</button>
+          </div>
+          
+          <div id="scene2-npc-response" class="npc-response" style="display: none;"></div>
+          
+          <p class="story-paragraph npc-dialogue" id="scene2-main-question" style="display: none;">
+            <em>"Tell me, how many cycles have you witnessed in your journey?"</em>
+          </p>
+          
+          <div class="story-input-container" id="scene2-input-container" style="display: none;">
+            <input type="number" id="story-age" class="story-input-large" placeholder="Enter your age" min="1" max="150">
+          </div>
+        </div>
+        
+        <button id="story-scene-2-btn" class="story-continue-btn" style="display: none;">Continue</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Story Scene 3: Identity -->
+  <section id="story-scene-3" class="screen">
+    <div class="panel panel--wide">
+      <div class="story-content">
+        <h2 class="story-title">The Edict of the Fallen King</h2>
+        
+        <div class="story-text">
+          <p class="story-paragraph">
+            As you continue toward the four Great Island, the guide walks beside you, observing the way you carry yourself. 
+            The journey has revealed much, but there is still more to understand.
+          </p>
+          
+          <p class="story-paragraph npc-dialogue" id="scene3-initial-dialogue">
+            <em>"<span id="story-name-display-2" class="story-highlight"></span>, at <span id="story-age-display" class="story-highlight"></span> cycles, 
+            you have seen much."</em>
+          </p>
+          
+          <div id="scene3-dialogue-options" class="dialogue-options">
+            <button class="dialogue-btn" data-response="trial">"What is the Scribe's Trial?"</button>
+            <button class="dialogue-btn" data-response="relics">"Tell me about the four relics"</button>
+            <button class="dialogue-btn" data-response="ready">"Am I ready for this journey?"</button>
+          </div>
+          
+          <div id="scene3-npc-response" class="npc-response" style="display: none;"></div>
+          
+          <p class="story-paragraph npc-dialogue" id="scene3-main-question" style="display: none;">
+            <em>"To address you properly as we continue this journey, how should I refer to you? What are your pronouns?"</em>
+          </p>
+          
+          <div class="story-input-container" id="scene3-input-container" style="display: none;">
+            <select id="story-pronouns" class="story-input-large story-select-large">
+              <option value="">Choose your pronouns...</option>
+              <option value="he/him">He/Him</option>
+              <option value="she/her">She/Her</option>
+              <option value="they/them">They/Them</option>
+              <option value="custom">Custom (specify below)</option>
+            </select>
+            <input type="text" id="story-pronouns-custom" class="story-input-large" placeholder="Enter custom pronouns (e.g., xe/xem)" style="display: none; margin-top: 1rem;">
+          </div>
+        </div>
+        
+        <button id="story-scene-3-btn" class="story-continue-btn" style="display: none;">Continue</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Story Scene 4: Final Story -->
+  <section id="story-scene-4" class="screen">
+    <div class="panel panel--wide">
+      <div class="story-content">
+        <h2 class="story-title">The Edict of the Fallen King</h2>
+        
+        <div class="story-text">
+          <p class="story-paragraph">
+            Your guide nods, satisfied with your answers. Together, you continue toward the four Great Island, 
+            where the path to reclaiming your throne begins.
+          </p>
+          
+          <p class="story-paragraph npc-dialogue">
+            <em>"<span id="story-name-display-3" class="story-highlight"></span>, at <span id="story-age-display-2" class="story-highlight"></span> cycles... 
+            I see the spark of the great hero you once were. 
+            The Shadow Blight may have tarnished the four great relics—<span class="font-bold text-indigo-700">Vitality, Resilience, 
+            Connection, and Mastery</span>—but your Crown still awaits you."</em>
+          </p>
+          
+          <p class="story-paragraph">
+            The guide looks ahead toward the distant islands. <em>"Your quest is not to gain new power, but to restore the four tarnished 
+            relics of your forgotten self. Your people—your habits—are in disarray, but they can be healed."</em>
+          </p>
+          
+          <p class="story-paragraph npc-dialogue">
+            <em>"Before we reach the islands, <span id="story-name-display-4" class="story-highlight"></span> must first complete the 
+            <span class="font-bold text-yellow-800">Scribe's Trial</span>. This will determine <span id="pronoun-possessive">your</span> 
+            <span class="font-bold">Ascension Class</span> and reveal the true extent of the blight that has befallen 
+            <span id="pronoun-object">you</span>. Are <span id="pronoun-subject">you</span> ready, fallen one?"</em>
+          </p>
+        </div>
+        
+        <button id="story-scene-4-btn" class="story-continue-btn">Begin the Scribe's Trial</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Info Screen (hidden, kept for compatibility) -->
+  <section id="info-screen" class="screen" style="display: none;">
     <div class="panel">
       <h2>Tell us about yourself</h2>
       <p class="panel-subtitle">We shape a persona that matches your ambitions.</p>
