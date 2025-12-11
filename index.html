@@ -10,7 +10,6 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <!-- Welcome Screen -->
   <section id="welcome-screen" class="screen active">
     <div class="scroll-text p-4 text-center">
       <p class="text-xl font-display text-gray-700">In a world torn by chaos and fate, heroes rise to bring balance...</p>
@@ -30,16 +29,57 @@
     <button id="skip-btn">Skip</button>
   </section>
 
-  <!-- Start Screen -->
   <section id="start-screen" class="screen">
     <div class="panel">
       <h1>Welcome to the Hero Journey</h1>
       <p class="panel-subtitle">Choose your path, forge your destiny, and watch your daily quests turn you into a legend.</p>
       <button id="start-btn">Start Adventure</button>
+      <button id="login-link-btn" style="margin-top: 1rem; background: transparent; border: 1px solid var(--panel-border);">Login to Continue Journey</button>
     </div>
   </section>
 
-  <!-- Story Scene 1: Name -->
+  <section id="auth-screen" class="screen">
+    <div class="panel">
+      <h2>Create Account or Login</h2>
+      <p class="panel-subtitle">Sign in to save your progress and continue your journey.</p>
+      
+      <div id="auth-tabs" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center;">
+        <button id="tab-signup" class="auth-tab active" data-tab="signup">Sign Up</button>
+        <button id="tab-login" class="auth-tab" data-tab="login">Login</button>
+      </div>
+
+      <div id="signup-form" class="auth-form">
+        <div class="form-grid">
+          <label for="signup-email">
+            <span>Email</span>
+            <input type="email" id="signup-email" placeholder="your.email@example.com" required>
+          </label>
+          <label for="signup-password">
+            <span>Password</span>
+            <input type="password" id="signup-password" placeholder="Minimum 6 characters" minlength="6" required>
+          </label>
+        </div>
+        <button id="signup-btn" style="width: 100%; margin-top: 1rem;">Sign Up</button>
+        <p id="signup-error" style="color: var(--danger); margin-top: 1rem; display: none; font-size: 0.9rem;"></p>
+      </div>
+
+      <div id="login-form" class="auth-form" style="display: none;">
+        <div class="form-grid">
+          <label for="login-email">
+            <span>Email</span>
+            <input type="email" id="login-email" placeholder="your.email@example.com" required>
+          </label>
+          <label for="login-password">
+            <span>Password</span>
+            <input type="password" id="login-password" placeholder="Enter your password" required>
+          </label>
+        </div>
+        <button id="login-btn" style="width: 100%; margin-top: 1rem;">Login</button>
+        <p id="login-error" style="color: var(--danger); margin-top: 1rem; display: none; font-size: 0.9rem;"></p>
+      </div>
+    </div>
+  </section>
+
   <section id="story-scene-1" class="screen">
     <div class="panel panel--wide">
       <div class="story-content">
@@ -82,7 +122,6 @@
     </div>
   </section>
 
-  <!-- Story Scene 2: Age -->
   <section id="story-scene-2" class="screen">
     <div class="panel panel--wide">
       <div class="story-content">
@@ -121,7 +160,6 @@
     </div>
   </section>
 
-  <!-- Story Scene 3: Identity -->
   <section id="story-scene-3" class="screen">
     <div class="panel panel--wide">
       <div class="story-content">
@@ -167,7 +205,6 @@
     </div>
   </section>
 
-  <!-- Story Scene 4: Final Story -->
   <section id="story-scene-4" class="screen">
     <div class="panel panel--wide">
       <div class="story-content">
@@ -204,7 +241,6 @@
     </div>
   </section>
 
-  <!-- Info Screen (hidden, kept for compatibility) -->
   <section id="info-screen" class="screen" style="display: none;">
     <div class="panel">
       <h2>Tell us about yourself</h2>
@@ -231,7 +267,6 @@
     </div>
   </section>
 
-  <!-- Question Screen -->
   <section id="question-screen" class="screen">
     <div class="panel panel--wide">
       <h2>Answer these questions</h2>
@@ -241,7 +276,6 @@
     </div>
   </section>
 
-  <!-- Result Screen -->
   <section id="result-screen" class="screen">
     <div class="panel">
       <h2 id="hero-type"></h2>
@@ -250,7 +284,6 @@
     </div>
   </section>
 
-  <!-- Dashboard Screen -->
   <section id="dashboard-screen" class="screen">
     <div class="panel panel--wide">
       <h2>Welcome to the new world, <span id="player-display-name"></span>!</h2>
@@ -282,26 +315,20 @@
   <script src="config.js"></script>
   <script src="script.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', (event) => {
-      // Select the screens
-      const welcomeScreen = document.getElementById('welcome-screen');
-      const startScreen = document.getElementById('start-screen');
-      // Select the scrolling text element
-      const scrollText = document.querySelector('.scroll-text');
+    document.addEventListener('DOMContentLoaded', () => {
+      const welcomeScreen = document.getElementById('welcome-screen');
+      const startScreen = document.getElementById('start-screen');
+      const scrollText = document.querySelector('.scroll-text');
 
-      if (scrollText && welcomeScreen && startScreen) {
-        // Listen for the 'animationend' event, which fires when a CSS animation completes
-        scrollText.addEventListener('animationend', () => {
-          // Check if the welcome screen is still active (in case the user didn't skip)
-          if (welcomeScreen.classList.contains('active')) {
-            // Hide the welcome screen
-            welcomeScreen.classList.remove('active');
-            // Show the start screen
-            startScreen.classList.add('active');
-          }
-        });
-      }
-    });
-  </script>
+      if (scrollText && welcomeScreen && startScreen) {
+        scrollText.addEventListener('animationend', () => {
+          if (welcomeScreen.classList.contains('active')) {
+            welcomeScreen.classList.remove('active');
+            startScreen.classList.add('active');
+          }
+        });
+      }
+    });
+  </script>
 </body>
 </html>

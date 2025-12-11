@@ -258,6 +258,31 @@ button:focus-visible {
   box-shadow: 0 0 0 4px rgba(124, 92, 255, 0.4);
 }
 
+.auth-tab {
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 0.6rem 1.5rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.auth-tab.active {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-strong) 100%);
+  border-color: transparent;
+  color: var(--text);
+}
+
+.auth-tab:hover:not(.active) {
+  border-color: rgba(124, 92, 255, 0.5);
+  color: var(--text);
+}
+
+.auth-form {
+  text-align: left;
+}
+
 #result-message {
   margin: 1.5rem 0 2.5rem;
   color: var(--text-muted);

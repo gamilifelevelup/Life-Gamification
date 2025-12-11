@@ -1,16 +1,26 @@
-// Database and Screen Management
+/**
+ * Global state variables
+ */
 let currentProfileId = null;
+let currentUserId = null;
 let loadedQuestions = [];
 let loadedTasks = [];
 
-// Basic screen management
 const screens = document.querySelectorAll('.screen');
+
+/**
+ * Shows a specific screen by ID and hides all others
+ * @param {string} id - The ID of the screen element to show
+ */
 function showScreen(id) {
   screens.forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-// Wait for Supabase to be ready
+/**
+ * Waits for Supabase client to be initialized
+ * @returns {Promise<Object|null>} Supabase client instance or null if timeout
+ */
 function waitForSupabase() {
   return new Promise((resolve) => {
     if (supabaseClient) {
@@ -23,7 +33,6 @@ function waitForSupabase() {
         resolve(supabaseClient);
       }
     }, 100);
-    // Timeout after 5 seconds
     setTimeout(() => {
       clearInterval(checkInterval);
       resolve(null);
@@ -31,7 +40,200 @@ function waitForSupabase() {
   });
 }
 
-// Load questions from database
+/**
+ * Validates email format using regex
+ * @param {string} email - Email address to validate
+ * @returns {boolean} True if email format is valid
+ */
+function isValidEmail(email) {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+}
+
+/**
+ * Signs up a new user with email and password
+ * @param {string} email - User email address
+ * @param {string} password - User password
+ * @returns {Promise<Object>} Result object with success status and user data or error message
+ */
+async function signUp(email, password) {
+  const client = await waitForSupabase();
+  if (!client) {
+    return { success: false, error: 'Supabase not available' };
+  }
+
+  const trimmedEmail = email.trim().toLowerCase();
+  if (!isValidEmail(trimmedEmail)) {
+    return { success: false, error: 'Please enter a valid email address' };
+  }
+
+  try {
+    const redirectTo = `${window.location.origin}/confirm.html`;
+    
+    const { data, error } = await client.auth.signUp({
+      email: trimmedEmail,
+      password: password,
+      options: {
+        emailRedirectTo: redirectTo
+      }
+    });
+
+    if (error) {
+      if (error.message.includes('already registered') || error.message.includes('already exists')) {
+        return { success: false, error: 'This email is already registered. Please log in instead.' };
+      }
+      if (error.message.includes('disabled')) {
+        return { success: false, error: 'Email signups are disabled. Please contact support or check Supabase settings.' };
+      }
+      if (error.message.includes('invalid')) {
+        return { success: false, error: 'Please enter a valid email address' };
+      }
+      throw error;
+    }
+
+    if (data.user) {
+      currentUserId = data.user.id;
+      if (data.session === null) {
+        return { 
+          success: true, 
+          user: data.user, 
+          needsConfirmation: true,
+          message: 'Please check your email to confirm your account before continuing.'
+        };
+      }
+      return { success: true, user: data.user };
+    }
+
+    return { success: false, error: 'Sign up failed. Please try again.' };
+  } catch (error) {
+    console.error('Sign up error:', error);
+    let errorMessage = 'Sign up failed. Please try again.';
+    if (error.message) {
+      if (error.message.includes('already registered') || error.message.includes('User already registered')) {
+        errorMessage = 'This email is already registered. Please log in instead.';
+      } else if (error.message.includes('invalid')) {
+        errorMessage = 'Please enter a valid email address.';
+      } else {
+        errorMessage = error.message;
+      }
+    }
+    return { success: false, error: errorMessage };
+  }
+}
+
+/**
+ * Signs in an existing user with email and password
+ * @param {string} email - User email address
+ * @param {string} password - User password
+ * @returns {Promise<Object>} Result object with success status and user data or error message
+ */
+async function signIn(email, password) {
+  const client = await waitForSupabase();
+  if (!client) {
+    return { success: false, error: 'Supabase not available' };
+  }
+
+  try {
+    const { data, error } = await client.auth.signInWithPassword({
+      email: email,
+      password: password
+    });
+
+    if (error) throw error;
+
+    if (data.user) {
+      currentUserId = data.user.id;
+      await loadUserProfile(data.user.id);
+      return { success: true, user: data.user };
+    }
+
+    return { success: false, error: 'Login failed' };
+  } catch (error) {
+    console.error('Sign in error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Signs out the current user
+ * @returns {Promise<Object>} Result object with success status
+ */
+async function signOut() {
+  const client = await waitForSupabase();
+  if (!client) return;
+
+  try {
+    const { error } = await client.auth.signOut();
+    if (error) throw error;
+    
+    currentUserId = null;
+    currentProfileId = null;
+    return { success: true };
+  } catch (error) {
+    console.error('Sign out error:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Checks for an existing user session
+ * @returns {Promise<Object|null>} Session object if user is logged in, null otherwise
+ */
+async function checkSession() {
+  const client = await waitForSupabase();
+  if (!client) return null;
+
+  try {
+    const { data: { session }, error } = await client.auth.getSession();
+    if (error) throw error;
+
+    if (session && session.user) {
+      currentUserId = session.user.id;
+      await loadUserProfile(session.user.id);
+      return session;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Session check error:', error);
+    return null;
+  }
+}
+
+/**
+ * Loads user profile from database by user ID
+ * @param {string} userId - Authenticated user ID
+ * @returns {Promise<Object|null>} Profile data or null if not found
+ */
+async function loadUserProfile(userId) {
+  const client = await waitForSupabase();
+  if (!client) return null;
+
+  try {
+    const { data, error } = await client
+      .from('profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (data) {
+      currentProfileId = data.id;
+      return data;
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error loading user profile:', error);
+    return null;
+  }
+}
+
+/**
+ * Loads active questions from database
+ * @returns {Promise<Array>} Array of question objects
+ */
 async function loadQuestions() {
   const client = await waitForSupabase();
   if (!client) {
@@ -61,7 +263,10 @@ async function loadQuestions() {
   }
 }
 
-// Fallback questions if database is not available
+/**
+ * Generates fallback questions when database is unavailable
+ * @returns {Array} Array of fallback question objects
+ */
 function generateFallbackQuestions() {
   return [
     { id: 'fallback-1', title: 'Physical Activity', prompt: 'I enjoy engaging in physical activities', trait_weights: { v: 0.4, r: 0.1, c: 0.2, m: 0.3 } },
@@ -77,7 +282,10 @@ function generateFallbackQuestions() {
   ];
 }
 
-// Generate questions UI from database
+/**
+ * Generates question UI elements from loaded questions
+ * @returns {Promise<void>}
+ */
 async function generateQuestions() {
   const container = document.getElementById('questions-container');
   container.innerHTML = '<p>Loading questions...</p>';
@@ -103,7 +311,12 @@ async function generateQuestions() {
   });
 }
 
-// Calculate hero type and attributes from answers
+/**
+ * Calculates hero type and dominant trait from user answers
+ * @param {Array<number>} answers - Array of answer scores (1-5)
+ * @param {Array<Object>} questions - Array of question objects with trait weights
+ * @returns {Object} Object containing heroType and dominantTrait
+ */
 function calculateHeroType(answers, questions) {
   const traits = { v: 0, r: 0, c: 0, m: 0 };
 
@@ -118,11 +331,9 @@ function calculateHeroType(answers, questions) {
     }
   });
 
-  // Normalize traits
   const maxTrait = Math.max(traits.v, traits.r, traits.c, traits.m);
   const dominantTrait = Object.keys(traits).find(key => traits[key] === maxTrait);
 
-  // Determine hero type based on dominant trait
   const heroTypes = {
     v: 'Warrior',
     r: 'Bard',
@@ -136,21 +347,68 @@ function calculateHeroType(answers, questions) {
   };
 }
 
-// Calculate base level from total attribute scores
-// Formula: floor([total_scores / 50] * 25)
+/**
+ * Calculates base level from total attribute scores
+ * Formula: floor([total_scores / 50] * 25)
+ * @param {Object} attributes - Object with v, r, c, m attribute values
+ * @returns {number} Base level (minimum 1)
+ */
 function calculateBaseLevel(attributes) {
   const totalScores = attributes.v + attributes.r + attributes.c + attributes.m;
   const baseLevel = Math.floor((totalScores / 50) * 25);
-  return Math.max(1, baseLevel); // Minimum level is 1
+  return Math.max(1, baseLevel);
 }
 
-// Calculate experience required for next level
-// Formula: next_level = 1000 * Base_level^2
+/**
+ * Calculates experience required for next level
+ * Formula: next_level = 1000 * Base_level^2
+ * @param {number} baseLevel - Current base level
+ * @returns {number} Experience points required for next level
+ */
 function calculateNextLevelExp(baseLevel) {
   return 1000 * Math.pow(baseLevel, 2);
 }
 
-// Save profile to database with calculated level and experience
+/**
+ * Maps pronoun values to valid database sex field values
+ * @param {string} pronouns - Pronoun string (e.g., 'he/him', 'she/her', 'they/them', or custom)
+ * @returns {string|null} Mapped value ('male', 'female', 'other') or null
+ */
+function mapPronounsToSex(pronouns) {
+  if (!pronouns) return null;
+  
+  const validValues = ['male', 'female', 'other'];
+  
+  if (validValues.includes(pronouns.toLowerCase())) {
+    return pronouns.toLowerCase();
+  }
+  
+  const pronounMap = {
+    'he/him': 'male',
+    'she/her': 'female',
+    'they/them': 'other',
+    'he': 'male',
+    'she': 'female',
+    'they': 'other'
+  };
+  
+  const lowerPronouns = pronouns.toLowerCase();
+  if (pronounMap[lowerPronouns]) {
+    return pronounMap[lowerPronouns];
+  }
+  
+  return 'other';
+}
+
+/**
+ * Saves or updates user profile in database
+ * @param {string} name - User's name
+ * @param {number|null} age - User's age
+ * @param {string} pronouns - User's pronouns
+ * @param {string} heroType - Calculated hero type
+ * @param {Object} attributes - Object with v, r, c, m attribute values
+ * @returns {Promise<string|null>} Profile ID if successful, null otherwise
+ */
 async function saveProfile(name, age, pronouns, heroType, attributes) {
   const client = await waitForSupabase();
   if (!client) {
@@ -158,38 +416,84 @@ async function saveProfile(name, age, pronouns, heroType, attributes) {
     return null;
   }
 
-  // Calculate base level from total attribute scores
   const baseLevel = calculateBaseLevel(attributes);
-  const nextLevelExp = calculateNextLevelExp(baseLevel);
+  const sexValue = mapPronounsToSex(pronouns);
+
+  if (!currentUserId) {
+    console.error('User must be authenticated to save profile');
+    return null;
+  }
 
   try {
-    const { data, error } = await client
-      .from('profiles')
-      .insert({
-        name: name,
-        age: age || null,
-        sex: pronouns || null, // Storing pronouns in sex field
-        hero_type: heroType,
-        level: baseLevel,
-        experience: 0, // Start with 0 experience
-        attribute_v: attributes.v,
-        attribute_r: attributes.r,
-        attribute_c: attributes.c,
-        attribute_m: attributes.m
-      })
-      .select()
-      .single();
+    const existingProfile = await loadUserProfile(currentUserId);
+    
+    if (existingProfile) {
+      const { data, error } = await client
+        .from('profiles')
+        .update({
+          name: name,
+          age: age || null,
+          sex: sexValue,
+          hero_type: heroType,
+          level: baseLevel,
+          attribute_v: attributes.v,
+          attribute_r: attributes.r,
+          attribute_c: attributes.c,
+          attribute_m: attributes.m
+        })
+        .eq('user_id', currentUserId)
+        .select()
+        .single();
 
-    if (error) throw error;
-    currentProfileId = data.id;
-    return data.id;
+      if (error) throw error;
+      currentProfileId = data.id;
+      return data.id;
+    } else {
+      const { data, error } = await client
+        .from('profiles')
+        .insert({
+          user_id: currentUserId,
+          name: name,
+          age: age || null,
+          sex: sexValue,
+          hero_type: heroType,
+          level: baseLevel,
+          experience: 0,
+          attribute_v: attributes.v,
+          attribute_r: attributes.r,
+          attribute_c: attributes.c,
+          attribute_m: attributes.m
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Database error details:', error);
+        throw error;
+      }
+      currentProfileId = data.id;
+      return data.id;
+    }
   } catch (error) {
     console.error('Error saving profile:', error);
+    if (error.message) {
+      console.error('Error message:', error.message);
+    }
+    if (error.details) {
+      console.error('Error details:', error.details);
+    }
+    if (error.hint) {
+      console.error('Error hint:', error.hint);
+    }
     return null;
   }
 }
 
-// Load profile data from database
+/**
+ * Loads profile data from database by profile ID
+ * @param {string} profileId - Profile ID to load
+ * @returns {Promise<Object|null>} Profile data or null if not found
+ */
 async function loadProfile(profileId) {
   const client = await waitForSupabase();
   if (!client) {
@@ -212,7 +516,11 @@ async function loadProfile(profileId) {
   }
 }
 
-// Save question answers to database
+/**
+ * Saves question answers to database
+ * @param {Array<number>} answers - Array of answer scores
+ * @returns {Promise<void>}
+ */
 async function saveQuestionAnswers(answers) {
   if (!currentProfileId) return;
 
@@ -237,7 +545,11 @@ async function saveQuestionAnswers(answers) {
   }
 }
 
-// Load tasks from database, sorted by user's primary needs
+/**
+ * Loads tasks from database, optionally sorted by primary trait
+ * @param {string|null} primaryTrait - Primary trait to prioritize (v, r, c, or m)
+ * @returns {Promise<Array>} Array of task objects
+ */
 async function loadTasks(primaryTrait = null) {
   const client = await waitForSupabase();
   if (!client) {
@@ -256,18 +568,15 @@ async function loadTasks(primaryTrait = null) {
     
     let tasks = data || [];
     
-    // Sort tasks based on user's primary needs (highest attribute)
     if (primaryTrait && tasks.length > 0) {
       tasks = tasks.sort((a, b) => {
         const aMatches = a.trait_focus && a.trait_focus.includes(primaryTrait) ? 1 : 0;
         const bMatches = b.trait_focus && b.trait_focus.includes(primaryTrait) ? 1 : 0;
         
-        // Prioritize tasks that match the primary trait
         if (aMatches !== bMatches) {
           return bMatches - aMatches;
         }
         
-        // Then sort by unlock level
         return (a.unlock_level || 1) - (b.unlock_level || 1);
       });
     }
@@ -280,7 +589,12 @@ async function loadTasks(primaryTrait = null) {
   }
 }
 
-// Complete a task and add XP
+/**
+ * Completes a task and adds experience points, handling level ups
+ * @param {string} taskId - Task ID to complete
+ * @param {number} xpReward - Experience points to award
+ * @returns {Promise<Object>} Result object with success status, level up info, and XP gained
+ */
 async function completeTask(taskId, xpReward) {
   if (!currentProfileId) {
     console.warn('No profile ID available');
@@ -294,40 +608,33 @@ async function completeTask(taskId, xpReward) {
   }
 
   try {
-    // Load current profile to get experience
     const profile = await loadProfile(currentProfileId);
     if (!profile) {
       console.error('Could not load profile');
       return { success: false };
     }
 
-    // Calculate new experience
     const currentExp = profile.experience || 0;
     const newExp = currentExp + (xpReward || 10);
     const currentLevel = profile.level || 1;
     const nextLevelExp = calculateNextLevelExp(currentLevel);
 
-    // Check if level up
     let newLevel = currentLevel;
     let finalExp = newExp;
     let leveledUp = false;
     
     if (newExp >= nextLevelExp) {
-      // Level up!
       leveledUp = true;
       newLevel = currentLevel + 1;
-      finalExp = newExp - nextLevelExp; // Carry over excess XP
+      finalExp = newExp - nextLevelExp;
       
-      // Recalculate next level exp for new level
       const newNextLevelExp = calculateNextLevelExp(newLevel);
-      // If still over, keep leveling up (shouldn't happen with normal XP gains, but just in case)
       while (finalExp >= newNextLevelExp) {
         newLevel += 1;
         finalExp -= calculateNextLevelExp(newLevel - 1);
       }
     }
 
-    // Save task log
     const { error: logError } = await client
       .from('task_logs')
       .insert({
@@ -339,7 +646,6 @@ async function completeTask(taskId, xpReward) {
 
     if (logError) throw logError;
 
-    // Update profile with new experience and level
     const { error: updateError } = await client
       .from('profiles')
       .update({
@@ -350,7 +656,6 @@ async function completeTask(taskId, xpReward) {
 
     if (updateError) throw updateError;
 
-    // Store level up info for UI notification
     if (leveledUp) {
       window.lastLevelUp = { from: currentLevel, to: newLevel };
     }
@@ -363,7 +668,11 @@ async function completeTask(taskId, xpReward) {
   }
 }
 
-// Display tasks in dashboard, sorted by user's primary needs
+/**
+ * Displays tasks in the dashboard, filtered by completion status
+ * @param {string|null} primaryTrait - Primary trait for task sorting
+ * @returns {Promise<void>}
+ */
 async function displayTasks(primaryTrait = null) {
   const taskContainer = document.querySelector('.task-dashboard');
   if (!taskContainer) return;
@@ -377,7 +686,6 @@ async function displayTasks(primaryTrait = null) {
     return;
   }
 
-  // Filter out already completed tasks
   const client = await waitForSupabase();
   let completedTaskIds = [];
   if (client && currentProfileId) {
@@ -396,7 +704,6 @@ async function displayTasks(primaryTrait = null) {
     }
   }
 
-  // Filter out completed tasks
   const availableTasks = tasks.filter(task => !completedTaskIds.includes(task.id));
 
   if (availableTasks.length === 0) {
@@ -436,27 +743,22 @@ async function displayTasks(primaryTrait = null) {
     </div>
   `;
 
-  // Add event listeners to complete buttons
   const completeButtons = taskContainer.querySelectorAll('.complete-task-btn');
   completeButtons.forEach(button => {
     button.addEventListener('click', async (e) => {
       const taskId = button.getAttribute('data-task-id');
       const xpReward = parseInt(button.getAttribute('data-xp')) || 10;
       
-      // Disable button to prevent double-clicks
       button.disabled = true;
       button.textContent = 'Completing...';
       button.style.opacity = '0.6';
       
-      // Complete the task
       const result = await completeTask(taskId, xpReward);
       
       if (result && result.success) {
-        // Show level up notification if applicable
         if (result.leveledUp) {
           alert(`🎉 Level Up! You reached level ${result.newLevel}! 🎉`);
         }
-        // Remove the task from display with animation
         const taskItem = button.closest('.task-item');
         if (taskItem) {
           taskItem.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
@@ -464,22 +766,16 @@ async function displayTasks(primaryTrait = null) {
           taskItem.style.transform = 'translateX(-20px)';
           
           setTimeout(async () => {
-            // Reload profile to update XP/level
             const profile = await loadProfile(currentProfileId);
             if (profile) {
-              // Update dashboard and get primary trait
               const primaryTrait = updateDashboard(profile);
-              
-              // Reload and display new tasks
               await displayTasks(primaryTrait);
             } else {
-              // Fallback: just reload tasks
               await displayTasks(null);
             }
           }, 300);
         }
       } else {
-        // Re-enable button on error
         button.disabled = false;
         button.textContent = 'Complete Task';
         button.style.opacity = '1';
@@ -489,37 +785,35 @@ async function displayTasks(primaryTrait = null) {
   });
 }
 
-// Update dashboard with profile data
+/**
+ * Updates dashboard UI with profile data
+ * @param {Object} profile - Profile data object
+ * @returns {string|null} Primary trait identifier (v, r, c, or m)
+ */
 function updateDashboard(profile) {
   if (!profile) return null;
 
-  // Update player name
   const nameEl = document.getElementById('player-display-name');
   if (nameEl) nameEl.textContent = profile.name;
 
-  // Update level
   const levelEl = document.getElementById('char-level');
   if (levelEl) levelEl.textContent = profile.level || 1;
 
-  // Calculate experience progress
   const currentLevel = profile.level || 1;
   const currentExp = profile.experience || 0;
   const nextLevelExp = calculateNextLevelExp(currentLevel);
   const expPercentage = Math.min(100, (currentExp / nextLevelExp) * 100);
 
-  // Update experience bar
   const expProgress = document.getElementById('exp-progress');
   if (expProgress) {
     expProgress.style.width = `${expPercentage}%`;
   }
 
-  // Update experience text
   const currentExpEl = document.getElementById('current-exp');
   const nextLevelExpEl = document.getElementById('next-level-exp');
   if (currentExpEl) currentExpEl.textContent = currentExp;
   if (nextLevelExpEl) nextLevelExpEl.textContent = nextLevelExp;
 
-  // Update attributes
   const attrV = document.getElementById('attr-v');
   const attrR = document.getElementById('attr-r');
   const attrC = document.getElementById('attr-c');
@@ -529,7 +823,6 @@ function updateDashboard(profile) {
   if (attrC) attrC.textContent = profile.attribute_c || 10;
   if (attrM) attrM.textContent = profile.attribute_m || 10;
 
-  // Determine primary trait for task sorting
   const attributes = {
     v: profile.attribute_v || 10,
     r: profile.attribute_r || 10,
@@ -542,14 +835,6 @@ function updateDashboard(profile) {
   return primaryTrait;
 }
 
-// Event Listeners
-
-// Welcome -> Skip
-document.getElementById('skip-btn').addEventListener('click', () => {
-  showScreen('start-screen');
-});
-
-// Dialogue responses for each scene
 const dialogueResponses = {
   scene1: {
     who: "I am a guide, a keeper of the old ways. I have watched over this realm for many cycles, waiting for one such as you to rise again.",
@@ -568,29 +853,28 @@ const dialogueResponses = {
   }
 };
 
-// Function to handle dialogue interactions
+/**
+ * Sets up dialogue interaction system for story scenes
+ * @param {number} sceneNum - Scene number (1, 2, or 3)
+ */
 function setupDialogueSystem(sceneNum) {
-  // Reset dialogue state
   const dialogueOptionsContainer = document.getElementById(`scene${sceneNum}-dialogue-options`);
   const npcResponse = document.getElementById(`scene${sceneNum}-npc-response`);
   const mainQuestion = document.getElementById(`scene${sceneNum}-main-question`);
   const inputContainer = document.getElementById(`scene${sceneNum}-input-container`);
   const continueBtn = document.getElementById(`story-scene-${sceneNum}-btn`);
   
-  // Reset visibility
   dialogueOptionsContainer.style.display = 'flex';
   npcResponse.style.display = 'none';
   mainQuestion.style.display = 'none';
   inputContainer.style.display = 'none';
   continueBtn.style.display = 'none';
   
-  // Remove any existing skip button
   const existingSkipBtn = dialogueOptionsContainer.querySelector('.skip-dialogue-btn');
   if (existingSkipBtn) {
     existingSkipBtn.remove();
   }
   
-  // Reset all dialogue buttons
   const dialogueOptions = dialogueOptionsContainer.querySelectorAll('.dialogue-btn:not(.skip-dialogue-btn)');
   dialogueOptions.forEach(btn => {
     btn.classList.remove('clicked');
@@ -609,15 +893,12 @@ function setupDialogueSystem(sceneNum) {
       const response = sceneResponses[responseType];
       
       if (response && !this.classList.contains('clicked')) {
-        // Mark button as clicked
         this.classList.add('clicked');
         clickedCount++;
         
-        // Show NPC response
         npcResponse.innerHTML = `<em>"${response}"</em>`;
         npcResponse.style.display = 'block';
         
-        // Add skip button after first click
         if (!skipBtnAdded && clickedCount > 0) {
           skipBtnAdded = true;
           const skipBtn = document.createElement('button');
@@ -638,14 +919,12 @@ function setupDialogueSystem(sceneNum) {
           dialogueOptionsContainer.appendChild(skipBtn);
         }
         
-        // After all dialogues are clicked, show main question
         if (clickedCount >= totalOptions) {
           setTimeout(() => {
             mainQuestion.style.display = 'block';
             inputContainer.style.display = 'block';
             continueBtn.style.display = 'block';
             dialogueOptionsContainer.style.display = 'none';
-            // Focus on input
             const input = inputContainer.querySelector('input, select');
             if (input) {
               setTimeout(() => input.focus(), 100);
@@ -657,13 +936,81 @@ function setupDialogueSystem(sceneNum) {
   });
 }
 
-// Start -> Story Scene 1
-document.getElementById('start-btn').addEventListener('click', () => {
-  showScreen('story-scene-1');
-  setupDialogueSystem(1);
+/**
+ * Gets pronoun forms (subject, object, possessive, reflexive) from pronoun string
+ * @param {string} pronouns - Pronoun string (e.g., 'he/him', 'she/her', 'they/them', or custom)
+ * @returns {Object} Object with subject, object, possessive, and reflexive forms
+ */
+function getPronounForms(pronouns) {
+  const pronounMap = {
+    'he/him': { subject: 'he', object: 'him', possessive: 'his', reflexive: 'himself' },
+    'she/her': { subject: 'she', object: 'her', possessive: 'her', reflexive: 'herself' },
+    'they/them': { subject: 'they', object: 'them', possessive: 'their', reflexive: 'themself' }
+  };
+  
+  if (pronounMap[pronouns]) {
+    return pronounMap[pronouns];
+  }
+  
+  const parts = pronouns.split('/');
+  if (parts.length >= 2) {
+    return {
+      subject: parts[0].trim(),
+      object: parts[1].trim(),
+      possessive: parts[2] ? parts[2].trim() : parts[1].trim() + "'s",
+      reflexive: parts[0].trim() + 'self'
+    };
+  }
+  
+  return { subject: 'they', object: 'them', possessive: 'their', reflexive: 'themself' };
+}
+
+/**
+ * Updates pronoun displays in story scene 4
+ */
+function updatePronounDisplays() {
+  if (window.pronounForms) {
+    const forms = window.pronounForms;
+    const pronounSubj = document.getElementById('pronoun-subject');
+    const pronounObj = document.getElementById('pronoun-object');
+    const pronounPoss = document.getElementById('pronoun-possessive');
+    const nameDisplay4 = document.getElementById('story-name-display-4');
+    
+    if (pronounSubj) pronounSubj.textContent = forms.subject;
+    if (pronounObj) pronounObj.textContent = forms.object;
+    if (pronounPoss) pronounPoss.textContent = forms.possessive;
+    if (nameDisplay4) nameDisplay4.textContent = document.getElementById('player-name').value;
+  }
+}
+
+document.getElementById('skip-btn').addEventListener('click', () => {
+  showScreen('start-screen');
 });
 
-// Story Scene 1 -> Scene 2 (Name)
+document.getElementById('start-btn').addEventListener('click', async () => {
+  if (currentUserId) {
+    const profile = await loadUserProfile(currentUserId);
+    if (profile) {
+      showScreen('dashboard-screen');
+      updateDashboard(profile);
+      const primaryTrait = updateDashboard(profile);
+      await displayTasks(primaryTrait);
+    } else {
+      showScreen('story-scene-1');
+      setupDialogueSystem(1);
+    }
+  } else {
+    showScreen('auth-screen');
+  }
+});
+
+const loginLinkBtn = document.getElementById('login-link-btn');
+if (loginLinkBtn) {
+  loginLinkBtn.addEventListener('click', () => {
+    showScreen('auth-screen');
+  });
+}
+
 function proceedFromScene1() {
   const name = document.getElementById('story-name').value.trim();
   if (!name) {
@@ -672,7 +1019,6 @@ function proceedFromScene1() {
     return;
   }
   
-  // Store name and display it in next scene
   document.getElementById('player-name').value = name;
   document.getElementById('story-name-display').textContent = name;
   document.getElementById('story-name-display-2').textContent = name;
@@ -689,7 +1035,6 @@ document.getElementById('story-name').addEventListener('keypress', (e) => {
   }
 });
 
-// Story Scene 2 -> Scene 3 (Age)
 function proceedFromScene2() {
   const age = document.getElementById('story-age').value;
   if (!age || parseInt(age) < 1) {
@@ -698,7 +1043,6 @@ function proceedFromScene2() {
     return;
   }
   
-  // Store age and display it in next scene
   document.getElementById('player-age').value = age;
   document.getElementById('story-age-display').textContent = age;
   document.getElementById('story-age-display-2').textContent = age;
@@ -714,35 +1058,6 @@ document.getElementById('story-age').addEventListener('keypress', (e) => {
   }
 });
 
-// Pronoun utility functions
-function getPronounForms(pronouns) {
-  // Default forms for common pronouns
-  const pronounMap = {
-    'he/him': { subject: 'he', object: 'him', possessive: 'his', reflexive: 'himself' },
-    'she/her': { subject: 'she', object: 'her', possessive: 'her', reflexive: 'herself' },
-    'they/them': { subject: 'they', object: 'them', possessive: 'their', reflexive: 'themself' }
-  };
-  
-  if (pronounMap[pronouns]) {
-    return pronounMap[pronouns];
-  }
-  
-  // For custom pronouns, try to parse (e.g., "xe/xem" -> subject: xe, object: xem)
-  const parts = pronouns.split('/');
-  if (parts.length >= 2) {
-    return {
-      subject: parts[0].trim(),
-      object: parts[1].trim(),
-      possessive: parts[2] ? parts[2].trim() : parts[1].trim() + "'s",
-      reflexive: parts[0].trim() + 'self'
-    };
-  }
-  
-  // Fallback
-  return { subject: 'they', object: 'them', possessive: 'their', reflexive: 'themself' };
-}
-
-// Story Scene 3 -> Scene 4 (Pronouns)
 function proceedFromScene3() {
   const pronouns = document.getElementById('story-pronouns').value;
   if (!pronouns) {
@@ -762,38 +1077,15 @@ function proceedFromScene3() {
     finalPronouns = customPronouns;
   }
   
-  // Store pronouns
   window.playerPronouns = finalPronouns;
   window.pronounForms = getPronounForms(finalPronouns);
-  
-  // Store in hidden field for compatibility (using sex field for now, but it's actually pronouns)
   document.getElementById('player-sex').value = finalPronouns;
-  
-  // Update pronoun displays in scene 4
   updatePronounDisplays();
-  
   showScreen('story-scene-4');
-}
-
-// Function to update pronoun displays in dialogue
-function updatePronounDisplays() {
-  if (window.pronounForms) {
-    const forms = window.pronounForms;
-    const pronounSubj = document.getElementById('pronoun-subject');
-    const pronounObj = document.getElementById('pronoun-object');
-    const pronounPoss = document.getElementById('pronoun-possessive');
-    const nameDisplay4 = document.getElementById('story-name-display-4');
-    
-    if (pronounSubj) pronounSubj.textContent = forms.subject;
-    if (pronounObj) pronounObj.textContent = forms.object;
-    if (pronounPoss) pronounPoss.textContent = forms.possessive;
-    if (nameDisplay4) nameDisplay4.textContent = document.getElementById('player-name').value;
-  }
 }
 
 document.getElementById('story-scene-3-btn').addEventListener('click', proceedFromScene3);
 
-// Show/hide custom pronoun input
 document.getElementById('story-pronouns').addEventListener('change', (e) => {
   const customInput = document.getElementById('story-pronouns-custom');
   if (e.target.value === 'custom') {
@@ -811,13 +1103,11 @@ document.getElementById('story-pronouns-custom').addEventListener('keypress', (e
   }
 });
 
-// Story Scene 4 -> Questions
 document.getElementById('story-scene-4-btn').addEventListener('click', async () => {
   await generateQuestions();
   showScreen('question-screen');
 });
 
-// Questions -> Result
 document.getElementById('submit-answers-btn').addEventListener('click', async () => {
   const answers = [];
   const questionElements = document.querySelectorAll('[data-question-id]');
@@ -831,7 +1121,6 @@ document.getElementById('submit-answers-btn').addEventListener('click', async ()
     return;
   }
 
-  // Calculate attributes based on answers (V/R/C/M Base P)
   const attributes = { v: 10, r: 10, c: 10, m: 10 };
   answers.forEach((answer, index) => {
     const question = loadedQuestions[index];
@@ -844,11 +1133,9 @@ document.getElementById('submit-answers-btn').addEventListener('click', async ()
     }
   });
 
-  // Calculate hero type and persona/traits from attributes
   const heroResult = calculateHeroType(answers, loadedQuestions);
   const heroType = heroResult.heroType;
 
-  // Save to database
   const name = document.getElementById('player-name').value.trim();
   const age = parseInt(document.getElementById('player-age').value) || null;
   const pronouns = window.playerPronouns || document.getElementById('player-sex').value;
@@ -856,25 +1143,18 @@ document.getElementById('submit-answers-btn').addEventListener('click', async ()
   await saveProfile(name, age, pronouns, heroType, attributes);
   await saveQuestionAnswers(answers);
 
-  // Display result
   document.getElementById('hero-type').textContent = `You are a ${heroType}!`;
   document.getElementById('result-message').textContent = "Are you satisfied with your destiny?";
   showScreen('result-screen');
 });
 
-// Accept Hero -> Dashboard
 document.getElementById('accept-hero-btn').addEventListener('click', async () => {
-  // Load profile data from database
   const profile = await loadProfile(currentProfileId);
   
   if (profile) {
-    // Update dashboard with profile data
     const primaryTrait = updateDashboard(profile);
-    
-    // Load and display tasks sorted by primary needs
     await displayTasks(primaryTrait);
   } else {
-    // Fallback if profile can't be loaded
     const name = document.getElementById('player-name').value.trim();
     document.getElementById('player-display-name').textContent = name;
     await displayTasks();
@@ -883,9 +1163,131 @@ document.getElementById('accept-hero-btn').addEventListener('click', async () =>
   showScreen('dashboard-screen');
 });
 
-// Initialize: Pre-load questions when page loads
+document.querySelectorAll('.auth-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const tabType = tab.getAttribute('data-tab');
+    
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    
+    const signupForm = document.getElementById('signup-form');
+    const loginForm = document.getElementById('login-form');
+    if (signupForm && loginForm) {
+      signupForm.style.display = tabType === 'signup' ? 'block' : 'none';
+      loginForm.style.display = tabType === 'login' ? 'block' : 'none';
+    }
+    
+    const signupError = document.getElementById('signup-error');
+    const loginError = document.getElementById('login-error');
+    if (signupError) signupError.style.display = 'none';
+    if (loginError) loginError.style.display = 'none';
+  });
+});
+
+const signupBtn = document.getElementById('signup-btn');
+if (signupBtn) {
+  signupBtn.addEventListener('click', async () => {
+    const emailInput = document.getElementById('signup-email');
+    const passwordInput = document.getElementById('signup-password');
+    const errorEl = document.getElementById('signup-error');
+    
+    if (!emailInput || !passwordInput || !errorEl) return;
+    
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    
+    if (!email || !password) {
+      errorEl.textContent = 'Please fill in all fields';
+      errorEl.style.display = 'block';
+      return;
+    }
+    
+    if (!isValidEmail(email)) {
+      errorEl.textContent = 'Please enter a valid email address';
+      errorEl.style.display = 'block';
+      return;
+    }
+    
+    if (password.length < 6) {
+      errorEl.textContent = 'Password must be at least 6 characters';
+      errorEl.style.display = 'block';
+      return;
+    }
+    
+    signupBtn.disabled = true;
+    signupBtn.textContent = 'Creating account...';
+    
+    const result = await signUp(email, password);
+    
+    if (result.success) {
+      if (result.needsConfirmation) {
+        errorEl.style.color = 'var(--accent-strong)';
+        errorEl.textContent = result.message || 'Please check your email to confirm your account.';
+        errorEl.style.display = 'block';
+        signupBtn.disabled = false;
+        signupBtn.textContent = 'Sign Up';
+      } else {
+        showScreen('story-scene-1');
+        setupDialogueSystem(1);
+      }
+    } else {
+      errorEl.style.color = 'var(--danger)';
+      errorEl.textContent = result.error || 'Sign up failed. Please try again.';
+      errorEl.style.display = 'block';
+      signupBtn.disabled = false;
+      signupBtn.textContent = 'Sign Up';
+    }
+  });
+}
+
+const loginBtn = document.getElementById('login-btn');
+if (loginBtn) {
+  loginBtn.addEventListener('click', async () => {
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+    const errorEl = document.getElementById('login-error');
+    
+    if (!emailInput || !passwordInput || !errorEl) return;
+    
+    const email = emailInput.value.trim();
+    const password = passwordInput.value;
+    
+    if (!email || !password) {
+      errorEl.textContent = 'Please fill in all fields';
+      errorEl.style.display = 'block';
+      return;
+    }
+    
+    loginBtn.disabled = true;
+    loginBtn.textContent = 'Logging in...';
+    
+    const result = await signIn(email, password);
+    
+    if (result.success) {
+      const profile = await loadUserProfile(currentUserId);
+      if (profile) {
+        showScreen('dashboard-screen');
+        updateDashboard(profile);
+        const primaryTrait = updateDashboard(profile);
+        await displayTasks(primaryTrait);
+      } else {
+        showScreen('story-scene-1');
+        setupDialogueSystem(1);
+      }
+    } else {
+      errorEl.textContent = result.error || 'Login failed. Please check your credentials.';
+      errorEl.style.display = 'block';
+      loginBtn.disabled = false;
+      loginBtn.textContent = 'Login';
+    }
+  });
+}
+
 window.addEventListener('DOMContentLoaded', async () => {
   console.log('App initialized');
-  // Pre-load questions for faster display
   await loadQuestions();
+  const session = await checkSession();
+  if (session && session.user) {
+    console.log('User session found:', session.user.email);
+  }
 });
