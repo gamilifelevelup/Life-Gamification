@@ -35,3 +35,14 @@ npm-debug.log*
 # ✅ *.md files (documentation)
 # ✅ database/*.sql files (schema and seed data - no secrets)
 # ✅ .gitignore
+CODING_REFERENCE_GUIDE.md
+COMPLETE_CODE_EXPLANATION.md
+database/fix_rls_policies.sql
+database/schema.sql
+database/seed_data.sql
+database/view_user_data.sql
+DETAILED_CODE_WALKTHROUGH.md
+README.md
+README.md
+SECURITY.md
+SETUP_DATABASE.md
