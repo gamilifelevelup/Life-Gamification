@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hero App Skeleton</title>
+  <title>Life RPG — Realm of the Fallen King</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -31,17 +31,17 @@
 
   <section id="start-screen" class="screen">
     <div class="panel">
-      <h1>Welcome to the Hero Journey</h1>
-      <p class="panel-subtitle">Choose your path, forge your destiny, and watch your daily quests turn you into a legend.</p>
-      <button id="start-btn">Start Adventure</button>
-      <button id="login-link-btn" style="margin-top: 1rem; background: transparent; border: 1px solid var(--panel-border);">Login to Continue Journey</button>
+      <h1 class="game-title">Life RPG: Reclaim Your Throne</h1>
+      <p class="panel-subtitle">A single‑player progression RPG that turns your real life into a realm to conquer.</p>
+      <button id="start-btn">Begin New Save</button>
+      <button id="login-link-btn" style="margin-top: 1rem; background: transparent; border: 1px solid var(--panel-border);">Load Existing Save</button>
     </div>
   </section>
 
   <section id="auth-screen" class="screen">
     <div class="panel">
-      <h2>Create Account or Login</h2>
-      <p class="panel-subtitle">Sign in to save your progress and continue your journey.</p>
+      <h2>Summon Your Account</h2>
+      <p class="panel-subtitle">Bind your progress to an email so your kingdom, quests, and levels persist across realms.</p>
       
       <div id="auth-tabs" style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center;">
         <button id="tab-signup" class="auth-tab active" data-tab="signup">Sign Up</button>
@@ -241,6 +241,44 @@
     </div>
   </section>
 
+  <!-- Pillar Map Screen -->
+  <section id="map-screen" class="screen">
+    <div class="panel panel--wide">
+      <h2>Realm Map: The Four Great Islands</h2>
+      <p class="panel-subtitle">
+        Choose a relic to restore. Each island represents a core stat that shapes your archetype and the quests you’ll unlock.
+      </p>
+      <div class="map-container" style="position: relative; height: 260px; margin-top: 1.5rem;">
+        <!-- Simple placeholder “map” with four clickable dots -->
+        <button class="pillar-dot" data-pillar="v"
+                style="position: absolute; left: 15%; top: 20%; width: 18px; height: 18px; border-radius: 999px; border: 2px solid var(--accent); background: rgba(70,108,255,0.2); cursor: pointer;"
+                title="Vitality Island">
+        </button>
+        <button class="pillar-dot" data-pillar="r"
+                style="position: absolute; right: 18%; top: 30%; width: 18px; height: 18px; border-radius: 999px; border: 2px solid var(--accent); background: rgba(70,108,255,0.2); cursor: pointer;"
+                title="Resilience Island">
+        </button>
+        <button class="pillar-dot" data-pillar="c"
+                style="position: absolute; left: 25%; bottom: 18%; width: 18px; height: 18px; border-radius: 999px; border: 2px solid var(--accent); background: rgba(70,108,255,0.2); cursor: pointer;"
+                title="Connection Island">
+        </button>
+        <button class="pillar-dot" data-pillar="m"
+                style="position: absolute; right: 20%; bottom: 12%; width: 18px; height: 18px; border-radius: 999px; border: 2px solid var(--accent); background: rgba(70,108,255,0.2); cursor: pointer;"
+                title="Mastery Island">
+        </button>
+      </div>
+      <p id="map-hint" style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted);">
+        Select an island to begin. Each relic can be restored only once.
+      </p>
+      <ul style="margin-top: 1rem; font-size: 0.9rem; color: var(--text-muted); list-style: none; padding: 0;">
+        <li><span class="story-highlight">Vitality</span> — Energy, sleep, movement, and biological restoration.</li>
+        <li><span class="story-highlight">Resilience</span> — Focus, emotional regulation, and self-discipline.</li>
+        <li><span class="story-highlight">Connection</span> — Belonging, support, and relationship investment.</li>
+        <li><span class="story-highlight">Mastery</span> — Skills, finances, and meaningful progress in your craft.</li>
+      </ul>
+    </div>
+  </section>
+
   <section id="info-screen" class="screen" style="display: none;">
     <div class="panel">
       <h2>Tell us about yourself</h2>
@@ -268,52 +306,69 @@
   </section>
 
   <section id="question-screen" class="screen">
-    <div class="panel panel--wide">
-      <h2>Answer these questions</h2>
-      <p class="panel-subtitle">Trust your instincts. Slide to choose how strongly each statement resonates.</p>
+    <div class="panel panel--wide questions-panel">
+      <h2 id="pillar-question-title">The Scribe's Trial</h2>
+      <p id="pillar-question-subtitle" class="panel-subtitle">
+        In the candlelit back room of the tavern, your guide unfurls a worn ledger. Slide each rune to show how much the words ring true.
+      </p>
       <div id="questions-container" class="questions-grid"></div>
       <button id="submit-answers-btn">Submit</button>
     </div>
   </section>
 
   <section id="result-screen" class="screen">
-    <div class="panel">
+    <div class="panel result-panel">
       <h2 id="hero-type"></h2>
       <p id="result-message"></p>
-      <button id="accept-hero-btn">Accept Destiny</button>
+      <button id="accept-hero-btn">Enter the Throne Room</button>
     </div>
   </section>
 
-  <section id="dashboard-screen" class="screen">
-    <div class="panel panel--wide">
-      <h2>Welcome to the new world, <span id="player-display-name"></span>!</h2>
-      <p class="panel-subtitle">Track your growth and plan the next epic quest.</p>
+  <section id="dashboard-screen" class="screen dashboard-screen">
+    <div class="dashboard-container">
+      <div class="dashboard-header">
+        <h2>Throne Room of <span id="player-display-name"></span></h2>
+        <p class="panel-subtitle">Track your stats, clear your quest log, and slowly lift the Shadow Blight from your realm.</p>
+      </div>
       <div class="dashboard">
         <div class="character-dashboard card">
-          <h3>Character Dashboard</h3>
+          <h3>Heroic Stats</h3>
           <p class="stat-line">Base Level: <span id="char-level">1</span></p>
           <div class="exp-bar-container">
             <div class="exp-bar"><div id="exp-progress"></div></div>
             <p class="exp-text"><span id="current-exp">0</span> / <span id="next-level-exp">1000</span> XP</p>
           </div>
           <ul class="attribute-list">
-            <li>Vitality (V): <span id="attr-v">10</span></li>
-            <li>Resilience (R): <span id="attr-r">10</span></li>
-            <li>Connection (C): <span id="attr-c">10</span></li>
-            <li>Mastery (M): <span id="attr-m">10</span></li>
+            <li>
+              <span class="attr-label">Vitality (V)</span>
+              <span id="attr-v" class="attr-value">10</span>
+            </li>
+            <li>
+              <span class="attr-label">Resilience (R)</span>
+              <span id="attr-r" class="attr-value">10</span>
+            </li>
+            <li>
+              <span class="attr-label">Connection (C)</span>
+              <span id="attr-c" class="attr-value">10</span>
+            </li>
+            <li>
+              <span class="attr-label">Mastery (M)</span>
+              <span id="attr-m" class="attr-value">10</span>
+            </li>
           </ul>
         </div>
 
         <div class="task-dashboard card">
-          <h3>Task Dashboard</h3>
-          <p class="placeholder">Quest tracking is coming soon...</p>
+          <h3>Quest Board</h3>
+          <p class="placeholder">Quests attuned to your four pillars will appear here.</p>
+          <div id="tasks-root"></div>
         </div>
       </div>
     </div>
   </section>
 
   <script src="config.js"></script>
-  <script src="script.js"></script>
+  <script type="module" src="script.js"></script>
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       const welcomeScreen = document.getElementById('welcome-screen');
