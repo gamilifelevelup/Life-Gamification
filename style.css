@@ -121,7 +121,7 @@ p {
   line-height: 1.8;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  animation: crawl 22s linear forwards;
+  animation: crawl 50s linear forwards;
 }
 
 @keyframes crawl {

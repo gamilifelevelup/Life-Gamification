@@ -473,17 +473,17 @@ function setupMapInteractions() {
   const subtitleEl = document.getElementById('pillar-question-subtitle');
 
   const titles = {
-    v: 'Vitality Island — The Forge of Energy',
-    r: 'Resilience Island — The Citadel of Focus',
-    c: 'Connection Island — The Circle of Companions',
-    m: 'Mastery Island — The Hall of Craft'
+    v: 'Vitality Pillar — The Forge of Energy',
+    r: 'Resilience Pillar — The Citadel of Focus',
+    c: 'Connection Pillar — The Circle of Companions',
+    m: 'Mastery Pillar — The Hall of Craft'
   };
 
   const subtitles = {
-    v: 'Answer a few questions about your sleep, movement, and physical energy.',
-    r: 'Answer a few questions about your focus, discipline, and emotional balance.',
-    c: 'Answer a few questions about your relationships and sense of belonging.',
-    m: 'Answer a few questions about your skills, work, and control over resources.'
+    v: 'Reflect on questions about your sleep, movement, and physical energy in the Outer World.',
+    r: 'Reflect on questions about your focus, discipline, and emotional balance.',
+    c: 'Reflect on questions about your relationships and sense of belonging.',
+    m: 'Reflect on questions about your skills, work, and control over resources.'
   };
 
   dots.forEach((dot) => {
@@ -493,7 +493,7 @@ function setupMapInteractions() {
 
       const pillarCompletion = getPillarCompletion();
       if (pillarCompletion[pillar]) {
-        showToast('This island has already been restored. Choose another relic.', 'info');
+        showToast('This pillar has already been restored. Choose another island.', 'info');
         return;
       }
 
@@ -519,7 +519,7 @@ function setupMapInteractions() {
 async function handleSubmitAnswers() {
   const activePillar = getActivePillar();
   if (!activePillar) {
-    showErrorToast("Choose an island on the map first.");
+    showErrorToast("Choose a pillar island on the map first.");
     return;
   }
 
@@ -550,7 +550,7 @@ async function handleSubmitAnswers() {
 
   if (!allDone) {
     setButtonLoading(submitBtn, false);
-    showToast('Relic sealed! Choose the next island.', 'success');
+    showToast('Pillar restored! Choose the next island.', 'success');
     showScreen(SCREENS.MAP);
     return;
   }
@@ -583,15 +583,15 @@ async function handleSubmitAnswers() {
   
   const heroTypeEl = document.getElementById('hero-type');
   if (heroTypeEl) {
-    heroTypeEl.textContent = `Your Archetype: ${heroType}`;
+    heroTypeEl.textContent = `Your Soul Archetype: ${heroType}`;
   }
   
   const resultMessageEl = document.getElementById('result-message');
   if (resultMessageEl) {
-    resultMessageEl.textContent = archetype.coreIdentity || "Your relics have been restored. This is the title you now bear.";
+    resultMessageEl.textContent = archetype.coreIdentity || "Your pillars have been restored. This is your Soul Archetype.";
   }
   
-  showToast('All relics restored! Your title has been revealed.', 'success', 4000);
+  showToast('All pillars restored! Your Soul Archetype has been revealed.', 'success', 4000);
   showScreen(SCREENS.RESULT);
 }
 

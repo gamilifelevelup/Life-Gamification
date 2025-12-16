@@ -102,19 +102,19 @@ export const LOCAL_ARCHETYPE_MATRIX = {
 // Dialogue responses for story scenes
 export const DIALOGUE_RESPONSES = {
   scene1: {
-    who: "I am a guide, a keeper of the old ways. I have watched over this realm for many cycles, waiting for one such as you to rise again.",
-    where: "You are in the realm of your inner kingdom—a place that reflects your very essence. The Shadow Blight has left its mark here, but hope remains.",
-    help: "I will guide you to the four Great Island, where you must restore the four relics: Vitality, Resilience, Connection, and Mastery. Together, we will reclaim what was lost."
+    who: "I am the Architect's Echo—a remnant of the consciousness that first shaped Sálarheim. I am the memory of your potential, waiting for you to remember this place that exists between the real world and the spirit world.",
+    where: "You are in Sálarheim—the Soul Realm, an astral plane that reflects your very essence. This is your Inner Constructed World, a geography of the mind that has been forgotten in the chaos of the Outer World.",
+    help: "I will guide you to the four floating islands, where you must restore the four pillars: Vitality, Resilience, Connection, and Mastery. Together, we will reclaim what was lost to the demands of the Outer World."
   },
   scene2: {
-    islands: "The four Great Island are sacred places, each representing one of the pillars of your reign. To restore your throne, you must journey to each and prove yourself worthy.",
-    throne: "Your throne awaits, but first you must restore the four relics. Each island will test you, and through these trials, you will regain the power you once held.",
-    blight: "The Shadow Blight is a corruption that feeds on neglect and weakness. It tarnished your four great pillars, but they can be cleansed through dedication and growth."
+    islands: "The four floating islands are fragments of your soul realm, each representing one of the pillars of your being. To restore Sálarheim, you must journey to each and reconnect with what was forgotten.",
+    restore: "The pillars await restoration, but first you must complete the Soul's Reflection. Each island will test you, and through these trials, you will remember the power you once held before the Outer World claimed your attention.",
+    realm: "Sálarheim is the astral plane between the real world and spirit world. It is your Inner Constructed World—a place that exists in the liminal space of consciousness, shaped by your essence but neglected by the demands of daily life."
   },
   scene3: {
-    trial: "The Scribe's Trial is a test of your true nature. Through questions, we will determine your Ascension Class—the path that best suits your spirit.",
-    relics: "The four relics are Vitality—your physical strength, Resilience—your mental fortitude, Connection—your bonds with others, and Mastery—your pursuit of excellence.",
-    ready: "You are ready, fallen one. The journey ahead will be challenging, but I see the spark of greatness within you. Trust in yourself, and we will succeed together."
+    trial: "The Soul's Reflection is a test of your true nature. Through questions, we will determine your Soul Archetype—the pattern that best reflects your essence in this astral plane.",
+    relics: "The four pillars are Vitality—your physical energy and life force, Resilience—your mental fortitude and emotional strength, Connection—your bonds with others and sense of belonging, and Mastery—your pursuit of excellence and control over resources.",
+    ready: "You are ready, weary soul. The journey ahead will be challenging, but I see the spark of who you were meant to be within you. Trust in yourself, and we will restore Sálarheim together."
   }
 };
 
