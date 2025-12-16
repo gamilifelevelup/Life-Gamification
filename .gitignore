@@ -1,5 +1,5 @@
 # Supabase Configuration (contains sensitive API keys)
-# NEVER commit config.js - it contains your real API credentials
+# NEVER commit config.js - create config.example.js as a template instead
 config.js
 
 # Environment variables
@@ -9,40 +9,56 @@ config.js
 
 # OS files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 desktop.ini
 
-# Editor files
+# Editor and IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 *~
+.project
+.classpath
+.settings/
 
 # Logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
 
 # Temporary files
 *.tmp
 *.temp
+*.bak
+*.cache
 
-# Files TO commit (these are safe and helpful):
-# ✅ index.html
-# ✅ style.css
-# ✅ script.js
-# ✅ config.example.js (template without real keys)
-# ✅ *.md files (documentation)
-# ✅ database/*.sql files (schema and seed data - no secrets)
-# ✅ .gitignore
+# Build and dependency files (if you add them later)
+node_modules/
+dist/
+build/
+*.min.js
+*.min.css
+
+# Testing
+coverage/
+.nyc_output/
+
+# Documentation files that are auto-generated or not needed
 CODING_REFERENCE_GUIDE.md
 COMPLETE_CODE_EXPLANATION.md
-database/fix_rls_policies.sql
-database/schema.sql
-database/seed_data.sql
-database/view_user_data.sql
 DETAILED_CODE_WALKTHROUGH.md
-README.md
-README.md
 SECURITY.md
 SETUP_DATABASE.md
+
+# Database files that are not needed in repo (if they contain sensitive data)
+# Note: schema.sql and seed_data.sql are kept as they're needed for setup
+database/fix_rls_policies.sql
+database/view_user_data.sql
