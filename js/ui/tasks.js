@@ -146,9 +146,11 @@ function setupTaskCompletionHandlers(container, primaryTrait) {
       
       if (result && result.success) {
         if (result.leveledUp) {
-          showToast(`🎉 Level Up! You reached level ${result.newLevel}! 🎉`, 'success', 4000);
+          const coinsMsg = result.coinsGained ? ` +${result.coinsGained} 🪙` : '';
+          showToast(`🎉 Level Up! You reached level ${result.newLevel}! +${xpReward} XP${coinsMsg} 🎉`, 'success', 4000);
         } else {
-          showToast(`Quest complete! +${xpReward} XP gained.`, 'success');
+          const coinsMsg = result.coinsGained ? ` +${result.coinsGained} 🪙` : '';
+          showToast(`Quest complete! +${xpReward} XP${coinsMsg}`, 'success');
         }
         
         const questCard = button.closest('.quest-card');

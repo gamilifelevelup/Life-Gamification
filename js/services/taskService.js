@@ -6,7 +6,7 @@
 import { waitForSupabase } from './supabase.js';
 import { TEST_USER_ID } from '../constants/index.js';
 import { loadProfile } from './profileService.js';
-import { calculateNextLevelExp } from '../business/calculations.js';
+import { calculateNextLevelExp, calculateCoinsFromXp } from '../business/calculations.js';
 import { getTestUserProfile, saveTestUserProfile } from '../utils/storage.js';
 
 /**
@@ -102,8 +102,13 @@ export async function completeTask(taskId, xpReward, profileId) {
         completed_at: new Date().toISOString()
       });
 
+      const coinsEarned = calculateCoinsFromXp(xpReward);
+      const currentCoins = profile.coins || 0;
+      const newCoins = currentCoins + coinsEarned;
+
       profile.experience = finalExp;
       profile.level = newLevel;
+      profile.coins = newCoins;
       profile.updated_at = new Date().toISOString();
       saveTestUserProfile(profile);
 
@@ -113,8 +118,8 @@ export async function completeTask(taskId, xpReward, profileId) {
         }
       }
       
-      console.log(`Task completed! Gained ${xpReward} XP. ${leveledUp ? `Level up to ${newLevel}!` : ''}`);
-      return { success: true, leveledUp, newLevel, xpGained: xpReward };
+      console.log(`Task completed! Gained ${xpReward} XP and ${coinsEarned} coins. ${leveledUp ? `Level up to ${newLevel}!` : ''}`);
+      return { success: true, leveledUp, newLevel, xpGained: xpReward, coinsGained: coinsEarned };
     } catch (error) {
       console.error('Error completing task (test user):', error);
       return { success: false };
@@ -166,11 +171,16 @@ export async function completeTask(taskId, xpReward, profileId) {
 
     if (logError) throw logError;
 
+    const coinsEarned = calculateCoinsFromXp(xpReward);
+    const currentCoins = profile.coins || 0;
+    const newCoins = currentCoins + coinsEarned;
+
     const { error: updateError } = await client
       .from('profiles')
       .update({
         experience: finalExp,
-        level: newLevel
+        level: newLevel,
+        coins: newCoins
       })
       .eq('id', profileId);
 
@@ -182,8 +192,8 @@ export async function completeTask(taskId, xpReward, profileId) {
       }
     }
     
-    console.log(`Task completed! Gained ${xpReward} XP. ${leveledUp ? `Level up to ${newLevel}!` : ''}`);
-    return { success: true, leveledUp, newLevel, xpGained: xpReward };
+    console.log(`Task completed! Gained ${xpReward} XP and ${coinsEarned} coins. ${leveledUp ? `Level up to ${newLevel}!` : ''}`);
+    return { success: true, leveledUp, newLevel, xpGained: xpReward, coinsGained: coinsEarned };
   } catch (error) {
     console.error('Error completing task:', error);
     return { success: false };

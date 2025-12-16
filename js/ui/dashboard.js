@@ -43,6 +43,9 @@ export function updateDashboard(profile) {
   if (attrC) attrC.textContent = profile.attribute_c || 10;
   if (attrM) attrM.textContent = profile.attribute_m || 10;
 
+  const coinsEl = document.getElementById('coins-display');
+  if (coinsEl) coinsEl.textContent = profile.coins || 0;
+
   const attributes = {
     v: profile.attribute_v || 10,
     r: profile.attribute_r || 10,

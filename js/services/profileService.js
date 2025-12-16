@@ -97,6 +97,7 @@ export async function saveProfile(userId, name, age, pronouns, heroType, attribu
       hero_type: heroType,
       level: baseLevel,
       experience: 0,
+      coins: 0,
       attribute_v: attributes.v,
       attribute_r: attributes.r,
       attribute_c: attributes.c,
@@ -109,6 +110,7 @@ export async function saveProfile(userId, name, age, pronouns, heroType, attribu
     if (existing) {
       testProfile.experience = existing.experience || 0;
       testProfile.level = existing.level || baseLevel;
+      testProfile.coins = existing.coins || 0;
     }
     
     saveTestUserProfile(testProfile);
@@ -160,6 +162,7 @@ export async function saveProfile(userId, name, age, pronouns, heroType, attribu
           hero_type: heroType,
           level: baseLevel,
           experience: 0,
+          coins: 0,
           attribute_v: attributes.v,
           attribute_r: attributes.r,
           attribute_c: attributes.c,

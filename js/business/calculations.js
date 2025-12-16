@@ -99,3 +99,13 @@ export function computeTaskXp(task, profile) {
   return Math.max(1, Math.round(baseXp * difficultyMultiplier * attributeBonus));
 }
 
+/**
+ * Calculates coins earned based on XP gained
+ * Coins are slightly lower than XP (80% of XP, rounded down)
+ * @param {number} xpGained - Experience points gained
+ * @returns {number} Coins earned
+ */
+export function calculateCoinsFromXp(xpGained) {
+  return Math.floor(xpGained * 0.8);
+}
+
