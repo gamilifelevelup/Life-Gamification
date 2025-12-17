@@ -4,3 +4,10 @@ Security Risk Involving RLS at supabase, "Data is publicly accessible via API as
 Coins added but no calculation for it yet, needs implement - NC
 Login - Signup dont work anymore for testing purpose, consider this - NC
 
+12/17/2025
+need filter algorith for task recommendation 
+Map selection for 4 attributes, each region has small areas represent sub attributes
+Task for each attribute (pillar) 
+2 major killing point: 
+- 1 la contextual filter (input environment + time + attribute) to pull task (output) from 4 pillars task library database
+- 2 la personalize task based on personality input (16 archetype) 
