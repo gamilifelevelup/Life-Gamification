@@ -1,0 +1,6 @@
+12/16/2025
+
+Security Risk Involving RLS at supabase, "Data is publicly accessible via API as RLS is disabled. Learn more" - NC
+Coins added but no calculation for it yet, needs implement - NC
+Login - Signup dont work anymore for testing purpose, consider this - NC
+
